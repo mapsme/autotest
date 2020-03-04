@@ -1,0 +1,6 @@
+front/node_modules/
+front/codebase/
+backend/main/static
+backend/*.log
+.idea/
+.DS_Store
