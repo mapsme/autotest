@@ -1,0 +1,9 @@
+node("autotest"){
+    stage("kill"){
+        try{
+            sh  "kill -9 `ps -aux | grep app.js | grep 00:BA:68:00:49:4F | grep -v grep | awk '{print \$2}'`"
+        } catch(Exception e) {
+                echo e.toString()
+        }
+    }
+}

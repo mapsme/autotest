@@ -1,0 +1,16 @@
+node("autotest"){
+    stage('git') {
+        deleteDir()
+        git credentialsId: 'ssh-autotest', branch: git_branch, url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
+    }
+    
+    stage('build'){
+        dir('mapsme-appium') {
+            sh 'python3 setup.py bdist_wheel'
+        }
+    }
+    
+    stage('artifacts') {
+        archiveArtifacts allowEmptyArchive: true, artifacts: '*/**/*.whl', onlyIfSuccessful: true
+    }
+}

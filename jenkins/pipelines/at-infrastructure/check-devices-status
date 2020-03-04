@@ -1,0 +1,52 @@
+import jenkins.model.Jenkins
+
+if (!Jenkins.instance.getNode(node).toComputer().isOnline()) {
+    currentBuild.result = 'ABORTED'
+    error('node is offline')
+}
+
+node(node){
+    stage('git') {
+        deleteDir()
+        if (node == "autotest"){
+            git credentialsId: 'ssh-autotest', branch: "master", url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
+        }
+        if (node == "naboo"){
+            withCredentials([sshUserPrivateKey(credentialsId: 'ssh-keniya', keyFileVariable: '~/.ssh/id_rsa.pub', passphraseVariable: '', usernameVariable: '')]) {
+                sh "git clone ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git"
+            }
+        }
+    }
+    stage('check') {
+        if (node == "autotest") {
+            sh "python3 check_devices.py -p Android"
+        }
+        if (node == "naboo"){
+            dir('general-ui-autotests') {
+                sh """python3 -m venv ./autotest 
+                source ./autotest/bin/activate
+                pip3 install -r requirements.txt 
+                python3 check_devices.py -p IOS"""
+            }
+        }
+    }
+    
+    stage("changes") {
+        try {
+            def ch
+            if (node == "autotest") {
+                ch = readFile 'changes.txt'
+            } 
+            if (node == "naboo"){
+                ch = readFile 'general-ui-autotests/changes.txt'
+            }
+            emailext mimeType: 'text/html', body: "<pre>${ch}</pre>", subject: "Device statuses were changed! ${new Date()}",
+                 to: 'k.kravchuk@mapswithme.com,a.blinchikov@corp.mail.ru'
+        } catch (Exception e) {
+            //
+        }
+    }
+    
+    
+    
+}

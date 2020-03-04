@@ -1,0 +1,14 @@
+node("autotest"){
+    stage("start"){
+        deleteDir()
+        git credentialsId: 'ssh-autotest', branch: "master", url: 'ssh://git@bitbucket.mail.ru:2222/mauto/hardware-autotests.git'
+    
+        dir('um24c') {
+            sh "npm install"
+            withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
+                def res = sh returnStdout: true, script:  "nohup ./app.js -a 00:BA:68:00:49:4F -t ${test_item} -p -s ${host} > /dev/null &"
+                echo res
+            }
+        }
+    }
+}

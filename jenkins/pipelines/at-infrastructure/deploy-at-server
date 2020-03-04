@@ -1,0 +1,28 @@
+node("falcon") {
+   pid = sh returnStdout: true, script: "ps -aux | grep \"manage.py runserver localhost:${port}\" | grep -v grep | awk '{print \$2}'"
+   echo pid
+   if (pid != "")
+   for (def p in pid.split("\n"))
+    sh "kill -9 ${p}"
+   deleteDir()
+    withCredentials([sshUserPrivateKey(credentialsId: 'ssh-falcon', keyFileVariable: '~/.ssh/id_rsa.pub', passphraseVariable: '', usernameVariable: '')]) {
+        sh "git clone -b ${git_branch} ssh://git@bitbucket.mail.ru:2222/mauto/infrastructure.git"
+    }
+   
+    dir('infrastructure/front') {
+        sh "npm install"
+        sh "npm run build"
+    }
+    
+    if (new Boolean(migrations)) {
+       dir('infrastructure/backend') {
+        sh "python3 manage.py migrate"
+       }
+    }
+   
+    dir('infrastructure/backend') {
+        withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
+            sh "nohup python3 manage.py runserver localhost:${port} > /dev/null &"
+        }
+    }
+}

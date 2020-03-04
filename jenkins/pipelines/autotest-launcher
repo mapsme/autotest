@@ -1,0 +1,18 @@
+node("autotest") {
+    if (PARAMETERS==null || PARAMETERS=="") {
+        build job: JOBNAME, wait: false
+    } else {
+        def jsonObj = readJSON text: PARAMETERS
+        def param_map = []
+        for (e in jsonObj){
+            echo e.value.toString()
+            if (e.value instanceof Boolean || e.value.toLowerCase()=="true" || e.value.toLowerCase()=="false") {
+                param_map.add(booleanParam(name: e.key, value: e.value.toBoolean()))             
+            } else {
+                param_map.add(string(name: e.key, value: e.value))      
+            }
+        }
+        echo param_map.toString()
+        build job: JOBNAME, wait: false, parameters: param_map
+    }
+}
