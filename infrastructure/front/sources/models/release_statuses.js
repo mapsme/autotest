@@ -1,0 +1,1 @@
+export const release_statuses = ["New", "Work", "Done"];

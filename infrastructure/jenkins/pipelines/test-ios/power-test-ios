@@ -1,0 +1,102 @@
+library 'test-utils'
+import groovy.json.JsonOutput
+
+node('naboo') {
+
+    stage('git') {
+        deleteDir()
+        withCredentials([sshUserPrivateKey(credentialsId: 'ssh-keniya', keyFileVariable: '~/.ssh/id_rsa.pub', passphraseVariable: '', usernameVariable: '')]) {
+            sh 'git clone -b ${git_branch} ssh://git@bitbucket.mail.ru:2222/mauto/hardware-autotests.git'
+        }
+    }
+
+    stage('copy artifacts') {
+        try{
+            copyArtifacts flatten: true, target: 'hardware-autotests', filter: '*/**/*.ipa', fingerprintArtifacts: true,
+                      projectName: 'iOS', selector: upstream(fallbackToLastSuccessful: true)
+        } catch (Exception e) {
+            currentBuild.result = 'ABORTED'
+            error('No artifacts found, aborting build...')
+        }
+        copyArtifacts fingerprintArtifacts: true, target: 'hardware-autotests', flatten: true, projectName: 'mapsme-appium'
+    }
+
+    stage('run tests') {
+        timestamps {
+            dir('hardware-autotests') {
+                device = DEVICE_NAME
+                def apk = build_number
+                def causer = JsonOutput.toJson(["\"name\"":"\"\"","\"build_number\"": "\"\"",
+                                "\"url\"":"\"\"","\"started_by\"":"\"build_check\"",
+                                "\"jenkins_job\"":"\"${env['BUILD_URL']}\"",
+                                "\"release\"":"\"\"","\"release_type\"":"\"${build_number}\""])
+
+                if (build_number != "beta" && build_number != "debug" && build_number != "release"){
+                    apk = sh returnStdout: true, script: 'echo `find *.ipa`'
+                    apk = apk.trim().split("\n")[0]
+                    causer = getCauser(apk, false)
+                }
+                try {
+                    isDeviceBusy(device)
+                    def pytest_start = "pytest \$WORKSPACE/mapsme --rootdir \$WORKSPACE/mapsme --html=report.html --junitxml=report.xml --log-cli-level=INFO "
+                    def conf = ["--device-id": device,
+                            "--apk-name": apk,
+                            "--build-number": currentBuild.number,
+                            "--time": TIMEOUT,
+                            "--session-info": "\"${causer}\"",
+                            "--report-host": REPORT_SERVER,
+                            "--clean-device": clean_device,
+                            "-k": "\"${TEST_ITEMS}\""
+                            ]
+
+                    def str = conf.collect{ return  " ${it.key}=${it.value}"}.join("")
+                    str = str + " --is-power"
+
+                    if (new Boolean(standart)) {
+                        str = str + " --is-standart"
+                    }
+
+                    pytest_start = pytest_start + str
+
+                    sh """#!/bin/bash
+                    export WORKSPACE=`pwd`
+
+                    python3 -m venv ./autotest
+                    source ./autotest/bin/activate
+
+                    pip3 install -r $WORKSPACE/hardware-autotests/mapsme/requirements.txt
+                    whl=`find *.whl`
+                    echo \$whl
+                    pip3 install \$WORKSPACE/\$whl
+                    ${pytest_start}
+
+                    """
+                } catch(Exception e) {
+                    echo e.toString()
+                }
+            }
+        }
+    }
+
+    stage("post") {
+        build 'test-ios/um24c-kill'
+    }
+
+    stage('report') {
+        archiveArtifacts allowEmptyArchive: true, artifacts: 'hardware-autotests/report.html,hardware-autotests/*.png'
+        junit allowEmptyResults: true, testResults: 'hardware-autotests/report.xml'
+        publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: '',
+                     reportFiles: 'hardware-autotests/report.html', reportName: 'Appium test report',
+                     reportTitles: 'Appium test report'])
+    }
+
+    stage('sendmail') {
+        def result = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class).result
+        def total = result.getTotalCount()
+        def failed = result.getFailCount()
+        def passed = total - failed
+        def body = "Tests result <br> Total: ${total}, Passed: ${passed}, Failed: ${failed}"
+        emailext mimeType: 'text/html', body: body, subject: "Test result power-test-ios #${currentBuild.number}",
+                 to: 'k.kravchuk@mapswithme.com'
+    }
+}

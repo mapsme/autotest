@@ -1,0 +1,127 @@
+library 'test-utils'
+import groovy.json.JsonOutput
+
+node('autotest') {
+
+    stage('git') {
+        deleteDir()
+        git credentialsId: 'ssh-autotest', branch: git_branch, url: 'ssh://git@bitbucket.mail.ru:2222/mauto/hardware-autotests.git'
+    }
+
+    stage("prepare") {
+        dir('um24c') {
+            def res = sh returnStdout: true, script: "npm install"
+            echo res
+        }
+    }
+
+    stage('copy artifacts') {
+        def upstreamCause
+        try{
+            upstreamCause = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+            if (upstreamCause != null) {
+                upstreamCause = null
+                echo "Get artifacts from upstream build"
+                copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true, projectName: 'Android', selector: upstream(fallbackToLastSuccessful: true)
+            }
+            else {
+                echo "Upstream cause is null"
+                if (build_number == null || build_number == ""){
+                    echo "Build number is null"
+                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true, projectName: 'Android'
+                }
+                else {
+                    echo "Build number is ${build_number}"
+                    if (build_number != "beta" && build_number != "debug" && build_number != "release")
+                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true, projectName: 'Android', selector: specific(build_number)
+                }
+            }
+            upstreamCause = null
+        } catch (Exception e) {
+            echo e.toString()
+            upstreamCause = null
+            currentBuild.result = 'ABORTED'
+            error('No apk found, aborting build...')
+        }
+        copyArtifacts fingerprintArtifacts: true, flatten: true, projectName: 'mapsme-appium'
+    }
+
+    stage('run tests') {
+        timestamps {
+            def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
+            def active_devices = active_devices_str.split("\n")
+            if (active_devices.size() == 0) {
+                error 'There are no active devices!'
+            }
+            if (DEVICE_NAME != null && DEVICE_NAME != '') {
+                device = DEVICE_NAME
+            }
+            def apk = build_number
+            def causer = JsonOutput.toJson(["\"name\"":"\"\"","\"build_number\"": "\"\"",
+                            "\"url\"":"\"\"","\"started_by\"":"\"build_check\"",
+                            "\"jenkins_job\"":"\"${env['BUILD_URL']}\"",
+                            "\"release\"":"\"\"","\"release_type\"":"\"${build_number}\""])
+
+            if (build_number != "beta" && build_number != "debug" && build_number != "release"){
+                apk = sh returnStdout: true, script: 'echo `find *.apk`'
+                apk = apk.trim().split("\n")[0]
+                causer = getCauser(apk, true)
+            }
+            try {
+                isDeviceBusy(device)
+                def pytest_start = "pytest \$WORKSPACE/mapsme --rootdir \$WORKSPACE/mapsme --html=report.html --junitxml=report.xml --log-cli-level=INFO "
+                def conf = ["--device-id": device,
+                        "--apk-name": apk,
+                        "--build-number": currentBuild.number,
+                        "--time": TIMEOUT,
+                        "--session-info": "\"${causer}\"",
+                        "--report-host": REPORT_SERVER,
+                        "--clean-device": clean_device,
+                        "--clean-data": clean_device,
+                        "-k": "\"${TEST_ITEMS}\""
+                        ]
+
+                def str = conf.collect{ return  " ${it.key}=${it.value}"}.join("")
+                str = str + " --is-power --is-memory"
+
+                if (new Boolean(standart)) {
+                    str = str + " --is-standart"
+                }
+
+                pytest_start = pytest_start + str
+
+                sh """#!/bin/bash
+                export WORKSPACE=`pwd`
+
+                python3 -m venv ./autotest
+                source ./autotest/bin/activate
+
+                pip3 install -r $WORKSPACE/mapsme/requirements.txt
+                whl=`find *.whl`
+                echo \$whl
+                pip3 install \$WORKSPACE/\$whl
+                ${pytest_start}
+
+                """
+            } catch(Exception e) {
+                echo e.toString()
+            }
+        }
+    }
+
+    stage('report') {
+        archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html,*.png'
+        junit allowEmptyResults: true, testResults: 'report.xml'
+        publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: '', reportFiles: 'report.html', reportName: 'Appium test report', reportTitles: 'Appium test report'])
+    }
+
+    stage('sendmail') {
+        def result = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class).result
+        def total = result.getTotalCount()
+        def failed = result.getFailCount()
+        def passed = total - failed
+        def body = "Tests result <br> Total: ${total}, Passed: ${passed}, Failed: ${failed}"
+        emailext mimeType: 'text/html', body: body, subject: "Test result power-test-android #${currentBuild.number}",
+                 to: 'k.kravchuk@mapswithme.com'
+    }
+}

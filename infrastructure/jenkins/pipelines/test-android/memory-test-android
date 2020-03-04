@@ -1,0 +1,43 @@
+library 'test-utils'
+node('autotest') {
+
+    stage('git') {
+        deleteDir()
+        git credentialsId: 'ssh-autotest', branch: git_branch, url: 'ssh://git@bitbucket.mail.ru:2222/mauto/hardware-autotests.git'
+    }
+
+    stage('copy artifacts') {
+        copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true,
+                      projectName: 'Android', selector: upstream(fallbackToLastSuccessful: true)
+        copyArtifacts fingerprintArtifacts: true, flatten: true, projectName: 'mapsme-appium'
+    }
+
+    stage('run tests') {
+        timestamps {
+            def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
+            def active_devices = active_devices_str.split("\n")
+            if (active_devices.size() == 0) {
+                error 'There are no active devices!'
+            }
+            if (DEVICE_NAME != null && DEVICE_NAME != '') {
+                device = DEVICE_NAME
+            }
+
+            def apk = sh returnStdout: true, script: 'echo `find *.apk`'
+            apk = apk.trim().split("\n")[0]
+            try {
+                isDeviceBusy(device)
+                def causer = getCauser(apk, true)
+                sh "chmod 777 start_memory.sh && ./start_memory.sh ${device} \"${TEST_ITEMS}\" ${apk} ${currentBuild.number} ${TIMEOUT} \"${causer}\" ${clean_device} ${REPORT_SERVER}"
+            } catch(Exception e) {
+                echo e.toString()
+            }
+        }
+    }
+
+    stage('report') {
+        archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html,*.png'
+        publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: '',
+                    reportFiles: 'report.html', reportName: 'Appium test report', reportTitles: 'Appium test report'])
+    }
+}
