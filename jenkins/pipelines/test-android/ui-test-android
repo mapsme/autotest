@@ -7,7 +7,7 @@ node('autotest') {
 
     stage('git') {
         deleteDir()
-        git credentialsId: 'ssh-autotest', branch: git_branch, url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
+        git credentialsId: 'jenkins-github-ssh', branch: git_branch, url: 'git@github.com:mapsme/autotest.git' 
     }
     
     stage('copy artifacts') {
@@ -17,18 +17,18 @@ node('autotest') {
             if (upstreamCause != null) {
                 upstreamCause = null
                 echo "Get artifacts from upstream build"
-                copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true, projectName: 'Android', selector: upstream(fallbackToLastSuccessful: true)
+                copyArtifacts flatten: true, filter: '*/**/android-web-universal*', target: 'general-ui-autotests', fingerprintArtifacts: true, projectName: 'Android', selector: upstream(fallbackToLastSuccessful: true)
             }
             else {
                 echo "Upstream cause is null"
                 if (build_number == null || build_number == ""){
                     echo "Build number is null"
-                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true, projectName: 'Android'
+                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', ≠, fingerprintArtifacts: true, projectName: 'Android'
                 }
                 else {
                     echo "Build number is ${build_number}"
                     if (build_number != "beta" && build_number != "debug" && build_number != "release")
-                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', fingerprintArtifacts: true, projectName: 'Android', selector: specific(build_number)
+                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', target: 'general-ui-autotests', fingerprintArtifacts: true, projectName: 'Android', selector: specific(build_number)
                 }
             }
             upstreamCause = null
@@ -38,136 +38,61 @@ node('autotest') {
             currentBuild.result = 'ABORTED'
             error('No apk found, aborting build...')
         }
-        copyArtifacts fingerprintArtifacts: true, flatten: true, projectName: 'mapsme-appium'
+        copyArtifacts fingerprintArtifacts: true, flatten: true, target: 'general-ui-autotests', projectName: 'mapsme-appium'
     }
     
     stage('run tests') {
         timestamps {
-            def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
-            def active_devices = active_devices_str.split("\n")
-            if (active_devices.size() == 0) {
-                error 'There are no active devices!'
-            }
-            if (DEVICE_NAME != null && DEVICE_NAME != '') {
-                device = DEVICE_NAME
-            }
-
-            def apk = build_number
-            def causer = JsonOutput.toJson(["\"name\"":"\"\"","\"build_number\"": "\"\"",
-                            "\"url\"":"\"\"","\"started_by\"":"\"build_check\"",
-                            "\"jenkins_job\"":"\"${env['BUILD_URL']}\"",
-                            "\"release\"":"\"\"","\"release_type\"":"\"${build_number}\""])
-
-            if (build_number != "beta" && build_number != "debug" && build_number != "release"){
-                apk = sh returnStdout: true, script: 'echo `find *.apk`'
-                apk = apk.trim().split("\n")[0]
-                causer = getCauser(apk, true)
-            }
-            try {
-                isDeviceBusy(device)
-                def pytest_start = "pytest \$WORKSPACE/mapsme --rootdir \$WORKSPACE/mapsme --html=report.html --junitxml=report.xml --log-cli-level=INFO "
-                def conf = ["--device-id": device,
-                        "--apk-name": apk,
-                        "--build-number": currentBuild.number,
-                        "--session-info": "\"${causer}\"",
-                        "--report-host": REPORT_SERVER,
-                        "--clean-device": clean_device
-                        ]
-                if (mark == null || mark == '') {
-                    conf["-k"] = "\"${TEST_ITEMS}\""
+            dir('general-ui-autotests') {
+                def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
+                def active_devices = active_devices_str.split("\n")
+                if (active_devices.size() == 0) {
+                    error 'There are no active devices!'
+                }
+                if (DEVICE_NAME != null && DEVICE_NAME != '') {
+                    device = DEVICE_NAME
                 }
 
-                def str = conf.collect{ return  " ${it.key}=${it.value}"}.join("")
-                if (mark != null && mark != '') {
-                    str = str + " -m ${mark}"
+                def apk = build_number
+                def causer = JsonOutput.toJson(["\"name\"":"\"\"","\"build_number\"": "\"\"",
+                                "\"url\"":"\"\"","\"started_by\"":"\"build_check\"",
+                                "\"jenkins_job\"":"\"${env['BUILD_URL']}\"",
+                                "\"release\"":"\"\"","\"release_type\"":"\"${build_number}\""])
+
+                if (build_number != "beta" && build_number != "debug" && build_number != "release"){
+                    apk = sh returnStdout: true, script: 'echo `find *.apk`'
+                    apk = apk.trim().split("\n")[0]
+                    causer = getCauser(apk, true)
                 }
-
-                if (new Boolean(EXCLUDE_WEBVIEW)) {
-                    str = str + " --skip-webview"
-                 }
-
-                pytest_start = pytest_start + str
-
-                sh """#!/bin/bash
-                export WORKSPACE=`pwd`
-
-                python3 -m venv ./autotest
-                source ./autotest/bin/activate
-
-                pip3 install -r requirements.txt
-                whl=`find *.whl`
-                echo \$whl
-                pip3 install \$WORKSPACE/\$whl
-                ${pytest_start}
-
-                """
-
-            } catch(Exception e) {
-                echo e.toString()
-            }
-        }
-    }
-
-    stage("rerun") {
-        if (env['JOB_NAME'].contains("buildcheck")) {
-            junit allowEmptyResults: true, testResults: 'report.xml'
-            def result = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class).result
-            def total = result.getTotalCount()
-            def failed = result.getFailCount()
-            def skipped = result.getSkipCount()
-            def passed = total - failed - skipped
-            if (passed == 0) {
-                timestamps {
-                    def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
-                    def active_devices = active_devices_str.split("\n")
-                    if (active_devices.size() == 0) {
-                        error 'There are no active devices!'
-                    }
-                    if (DEVICE_NAME != null && DEVICE_NAME != '') {
-                        device = DEVICE_NAME
+                try {
+                    isDeviceBusy(device)
+                    def pytest_start = "pytest \$WORKSPACE/mapsme --rootdir \$WORKSPACE/mapsme --html=report.html --junitxml=report.xml --log-cli-level=INFO "
+                    def conf = ["--device-id": device,
+                            "--apk-name": apk,
+                            "--build-number": currentBuild.number,
+                            "--session-info": "\"${causer}\"",
+                            "--report-host": REPORT_SERVER,
+                            "--clean-device": clean_device
+                            ]
+                    if (mark == null || mark == '') {
+                        conf["-k"] = "\"${TEST_ITEMS}\""
                     }
 
-                    build job: 'at-infrastructure/kill-appium-session', parameters: [string(name: 'device_id', value: device),
-                                                                             string(name: 'node', value: 'autotest')],
-                                                                wait: false
-
-                    def apk = build_number
-                    def causer = JsonOutput.toJson(["\"name\"":"\"\"","\"build_number\"": "\"\"",
-                                    "\"url\"":"\"\"","\"started_by\"":"\"build_check\"",
-                                    "\"jenkins_job\"":"\"${env['BUILD_URL']}\"",
-                                    "\"release\"":"\"\"","\"release_type\"":"\"${build_number}\""])
-
-                    if (build_number != "beta" && build_number != "debug" && build_number != "release"){
-                        apk = sh returnStdout: true, script: 'echo `find *.apk`'
-                        apk = apk.trim().split("\n")[0]
-                        causer = getCauser(apk, true)
+                    def str = conf.collect{ return  " ${it.key}=${it.value}"}.join("")
+                    if (mark != null && mark != '') {
+                        str = str + " -m ${mark}"
                     }
-                    try {
-                        isDeviceBusy(device)
-                        def pytest_start = "pytest \$WORKSPACE/mapsme --rootdir \$WORKSPACE/mapsme --html=report.html --junitxml=report.xml --log-cli-level=INFO "
-                        def conf = ["--device-id": device,
-                                "--apk-name": apk,
-                                "--build-number": currentBuild.number,
-                                "--session-info": "\"${causer}\"",
-                                "--report-host": REPORT_SERVER,
-                                "--clean-device": clean_device
-                                ]
-                        if (mark == null || mark == '') {
-                            conf["-k"] = "\"${TEST_ITEMS}\""
-                        }
 
-                        def str = conf.collect{ return  " ${it.key}=${it.value}"}.join("")
-                        if (mark != null && mark != '') {
-                            str = str + " -m ${mark}"
-                        }
+                    if (new Boolean(EXCLUDE_WEBVIEW)) {
+                        str = str + " --skip-webview"
+                     }
 
-                        if (new Boolean(EXCLUDE_WEBVIEW)) {
-                                str = str + " --skip-webview"
-                         }
+                    pytest_start = pytest_start + str
 
-                        pytest_start = pytest_start + str
+                    withCredentials([usernamePassword(credentialsId: 'booking-credentials', passwordVariable: 'booking_api_pass', usernameVariable: 'booking_api_user'), usernamePassword(credentialsId: 'qatest', passwordVariable: 'test_pass', usernameVariable: 'test_user')]) {
 
                         sh """#!/bin/bash
+                        set +x
                         export WORKSPACE=`pwd`
 
                         python3 -m venv ./autotest
@@ -177,25 +102,113 @@ node('autotest') {
                         whl=`find *.whl`
                         echo \$whl
                         pip3 install \$WORKSPACE/\$whl
-                        ${pytest_start}
+                        ${pytest_start} 
 
                         """
-
-                    } catch(Exception e) {
-                        echo e.toString()
                     }
+
+                } catch(Exception e) {
+                    echo e.toString()
                 }
             }
-            currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class).setResult(new hudson.tasks.junit.TestResult(), hudson.model.TaskListener.NULL)
+        }
+    }
+
+    stage("rerun") {
+        if (env['JOB_NAME'].contains("buildcheck")) {
+            dir('general-ui-autotests') {
+                junit allowEmptyResults: true, testResults: 'report.xml'
+                def result = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class).result
+                def total = result.getTotalCount()
+                def failed = result.getFailCount()
+                def skipped = result.getSkipCount()
+                def passed = total - failed - skipped
+                if (passed == 0) {
+                    timestamps {
+                        def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
+                        def active_devices = active_devices_str.split("\n")
+                        if (active_devices.size() == 0) {
+                            error 'There are no active devices!'
+                        }
+                        if (DEVICE_NAME != null && DEVICE_NAME != '') {
+                            device = DEVICE_NAME
+                        }
+
+                        build job: 'at-infrastructure/kill-appium-session', parameters: [string(name: 'device_id', value: device),
+                                                                                 string(name: 'node', value: 'autotest')],
+                                                                    wait: false
+
+                        def apk = build_number
+                        def causer = JsonOutput.toJson(["\"name\"":"\"\"","\"build_number\"": "\"\"",
+                                        "\"url\"":"\"\"","\"started_by\"":"\"build_check\"",
+                                        "\"jenkins_job\"":"\"${env['BUILD_URL']}\"",
+                                        "\"release\"":"\"\"","\"release_type\"":"\"${build_number}\""])
+
+                        if (build_number != "beta" && build_number != "debug" && build_number != "release"){
+                            apk = sh returnStdout: true, script: 'echo `find *.apk`'
+                            apk = apk.trim().split("\n")[0]
+                            causer = getCauser(apk, true)
+                        }
+                        try {
+                            isDeviceBusy(device)
+                            def pytest_start = "pytest \$WORKSPACE/mapsme --rootdir \$WORKSPACE/mapsme --html=report.html --junitxml=report.xml --log-cli-level=INFO "
+                            def conf = ["--device-id": device,
+                                    "--apk-name": apk,
+                                    "--build-number": currentBuild.number,
+                                    "--session-info": "\"${causer}\"",
+                                    "--report-host": REPORT_SERVER,
+                                    "--clean-device": clean_device
+                                    ]
+                            if (mark == null || mark == '') {
+                                conf["-k"] = "\"${TEST_ITEMS}\""
+                            }
+
+                            def str = conf.collect{ return  " ${it.key}=${it.value}"}.join("")
+                            if (mark != null && mark != '') {
+                                str = str + " -m ${mark}"
+                            }
+
+                            if (new Boolean(EXCLUDE_WEBVIEW)) {
+                                    str = str + " --skip-webview"
+                             }
+
+                            pytest_start = pytest_start + str
+
+                            withCredentials([usernamePassword(credentialsId: 'booking-credentials', passwordVariable: 'booking_api_pass', usernameVariable: 'booking_api_user'), usernamePassword(credentialsId: 'qatest', passwordVariable: 'test_pass', usernameVariable: 'test_user')]) {
+                                sh """#!/bin/bash
+                                set +x
+                                export WORKSPACE=`pwd`
+
+                                python3 -m venv ./autotest
+                                source ./autotest/bin/activate
+
+                                pip3 install -r requirements.txt
+                                whl=`find *.whl`
+                                echo \$whl
+                                pip3 install \$WORKSPACE/\$whl
+                                ${pytest_start}
+
+                                """
+                            }
+
+                        } catch(Exception e) {
+                            echo e.toString()
+                        }
+                    }
+                }
+                currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class).setResult(new hudson.tasks.junit.TestResult(), hudson.model.TaskListener.NULL)
+            }
         }
     }
     
     stage('report') {
-        archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html,report.xml,*.png,*.json'
-        junit allowEmptyResults: true, testResults: 'report.xml'
-        publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true,
-                    reportDir: '', reportFiles: 'report.html', reportName: 'Appium test report',
-                    reportTitles: 'Appium test report'])
+        dir('general-ui-autotests') {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html,report.xml,*.png,*.json'
+            junit allowEmptyResults: true, testResults: 'report.xml'
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true,
+                        reportDir: '', reportFiles: 'report.html', reportName: 'Appium test report',
+                        reportTitles: 'Appium test report'])
+        }
     }
 
     stage('sendmail') {
@@ -204,7 +217,8 @@ node('autotest') {
         def failed = result.getFailCount()
         def skipped = result.getSkipCount()
         def passed = total - failed - skipped
-        def body = "Tests result <br> Total: ${total}, Passed: ${passed}, Failed: ${failed}, Skipped: ${skipped}"
+        def session = readFile encoding: 'utf-8', file: "general-ui-autotests/session.txt"
+        def body = "Tests result <br> Total: ${total}, Passed: ${passed}, Failed: ${failed}, Skipped: ${skipped}<br>\tSee result: ${session}"
         def to = 'k.kravchuk@mapswithme.com'
         if (env['JOB_NAME'].contains("buildcheck")) to = to+",a.blinchikov@corp.mail.ru"
         emailext mimeType: 'text/html', body: body, subject: "Test result ${env['JOB_NAME']} #${currentBuild.number}",

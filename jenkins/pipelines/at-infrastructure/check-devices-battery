@@ -1,19 +1,22 @@
 node("autotest"){
     stage('git') {
         deleteDir()
-        git credentialsId: 'ssh-autotest', branch: "master", url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
-    }
+        git credentialsId: 'jenkins-github-ssh', branch: "master", url: 'git@github.com:mapsme/autotest.git'    }
     stage('check') {
-        sh "python3 check_battery.py"
+	dir('general-ui-autotests') {
+        	sh "python3 check_battery.py"
+	}
     }
     
     stage("changes") {
-        try {
-            def ch = readFile 'battery.txt'
-            emailext mimeType: 'text/html', body: "<pre>${ch}</pre>", subject: "Device battery warning! ${new Date()}",
-                 to: 'k.kravchuk@mapswithme.com,a.blinchikov@corp.mail.ru'
-        } catch (Exception e) {
-            //
-        }
+	dir('general-ui-autotests') {
+        	try {
+            	def ch = readFile 'battery.txt'
+            	emailext mimeType: 'text/html', body: "<pre>${ch}</pre>", subject: "Device battery warning! ${new Date()}",
+                 	to: 'k.kravchuk@mapswithme.com,a.blinchikov@corp.mail.ru'
+        	} catch (Exception e) {
+            	//
+        	}
+	}
     }    
 }

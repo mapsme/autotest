@@ -3,13 +3,13 @@ node("autotest") {
 
     stage('git') {
         deleteDir()
-        git credentialsId: 'ssh-autotest', branch: git_branch, url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
+        git credentialsId: 'jenkins-github-ssh', branch: git_branch, url: 'git@github.com:mapsme/autotest.git' 
     }
 
     stage('copy artifacts') {
-        copyArtifacts flatten: true, filter: '*/**/*.apk', fingerprintArtifacts: true, projectName: 'Android',
+        copyArtifacts flatten: true, filter: '*/**/*.apk', target: 'general-ui-autotests', fingerprintArtifacts: true, projectName: 'Android',
                       selector: upstream(fallbackToLastSuccessful: true)
-        copyArtifacts fingerprintArtifacts: true, flatten: true, projectName: 'mapsme-appium'
+        copyArtifacts fingerprintArtifacts: true, target: 'general-ui-autotests', flatten: true, projectName: 'mapsme-appium'
     }
 
     parallel "universal": { get_stage("universal_1") },
@@ -22,78 +22,80 @@ node("autotest") {
 def get_stage(def type){
 	return stage("${type} apk"){
 	    timestamps {
-    		def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
-    	    def active_devices = active_devices_str.split("\n")
-    	    if (active_devices.size() == 0) {
-    	        error 'There are no active devices!'
-    	    }
+            dir('general-ui-autotests') {
+        		def active_devices_str = sh returnStdout: true, script: "adb devices -l | awk 'NR > 1 {print \$1}'"
+        	    def active_devices = active_devices_str.split("\n")
+        	    if (active_devices.size() == 0) {
+        	        error 'There are no active devices!'
+        	    }
 
-    	    def device = UNIVERSAL_DEVICE
-    	    def should_run = new Boolean(UNIVERSAL)
-    	    sleep(60)
-    	    if (type == "arm64") {
-    	        device = ARM_X64_DEVICE
-    	        should_run = new Boolean(ARM_X64)
-    	        sleep(60)
-    	    }
-    	    if (type == "armeabi") {
-    	        device = ARM_X32_DEVICE
-    	        should_run = new Boolean(ARM_X32)
-    	        sleep(120)
-    	    }
-    	    if (type == "x86") {
-    	        device = X86_DEVICE
-    	        should_run = new Boolean(X86)
-    	        sleep(180)
-    	    }
-    	    if (type == "universal_2") {
-    	        device = ADDITIONAL_DEVICE
-    	        should_run = new Boolean(ADDITIONAL)
-    	        sleep(210)
-    	    }
-    	    if (device == null || device == '' || !active_devices_str.contains(device) || !should_run) {
-    	        echo "Tests will not start"
-    	    }
-    	    else {
-    	        def actual_type = type.split("_")[0]
-    	        def apk = sh returnStdout: true, script: "echo `find *.apk | grep ${actual_type}`"
-                apk = apk.trim().split("\n")[0]
-                if (apk != ''){
-                    def ver = apk.split("-")[-2]
-                    def causer = ""
-                    def beta = apk.split("-")[-3]
-                    try {
-                        isDeviceBusy(device)
-                        causer = getCauser(apk, true)
-                        sh "chmod 777 monkey.sh && ./monkey.sh ${device} ${apk} ${TIME} ${ver} ${type} ${REPORT_SERVER} \"${causer}\" ${currentBuild.number}"
-                    } catch(Exception e) {
-                        echo e.toString()
-                        sleep(90)
-                        echo "Retrying..."
-                        sh "chmod 777 monkey.sh && ./monkey.sh ${device} ${apk} ${TIME} ${ver} ${type} ${REPORT_SERVER} \"${causer}\" ${currentBuild.number}"
-                    }
-                    try {
-                        if (new Boolean(send_mail)){
-                            def crashes = readFile encoding: 'utf-8', file: "crashes-${type}.txt"
-                            def stats = readJSON file: "crashes-stats-${type}.json"
-                            def count = 0
-                            if (!crashes.contains("No crashes found") && crashes.contains("Crash #")){
-                                count = crashes.split("Crash # ")[-1].split(" ")[0]
-                            }
-                            //def body = crashes
-                            def body = "Found ${stats['all']} crashes, ${stats['unique']} unique crashes, ${stats['new']} new.\nSee: ${stats['url']}"
-                            body += "\nSee jenkins log:\n\t${env['BUILD_URL']}console"
-                            emailext mimeType: 'text/html', body: "<pre>${body}</pre>", subject: "Monkey test result version ${actual_type}-${beta}-${ver}. Found ${count} crashes.", to: 'k.kravchuk@mapswithme.com,a.blinchikov@corp.mail.ru'
+        	    def device = UNIVERSAL_DEVICE
+        	    def should_run = new Boolean(UNIVERSAL)
+        	    sleep(60)
+        	    if (type == "arm64") {
+        	        device = ARM_X64_DEVICE
+        	        should_run = new Boolean(ARM_X64)
+        	        sleep(60)
+        	    }
+        	    if (type == "armeabi") {
+        	        device = ARM_X32_DEVICE
+        	        should_run = new Boolean(ARM_X32)
+        	        sleep(120)
+        	    }
+        	    if (type == "x86") {
+        	        device = X86_DEVICE
+        	        should_run = new Boolean(X86)
+        	        sleep(180)
+        	    }
+        	    if (type == "universal_2") {
+        	        device = ADDITIONAL_DEVICE
+        	        should_run = new Boolean(ADDITIONAL)
+        	        sleep(210)
+        	    }
+        	    if (device == null || device == '' || !active_devices_str.contains(device) || !should_run) {
+        	        echo "Tests will not start"
+        	    }
+        	    else {
+        	        def actual_type = type.split("_")[0]
+        	        def apk = sh returnStdout: true, script: "echo `find *.apk | grep ${actual_type}`"
+                    apk = apk.trim().split("\n")[0]
+                    if (apk != ''){
+                        def ver = apk.split("-")[-2]
+                        def causer = ""
+                        def beta = apk.split("-")[-3]
+                        try {
+                            isDeviceBusy(device)
+                            causer = getCauser(apk, true)
+                            sh "chmod 777 monkey.sh && ./monkey.sh ${device} ${apk} ${TIME} ${ver} ${type} ${REPORT_SERVER} \"${causer}\" ${currentBuild.number}"
+                        } catch(Exception e) {
+                            echo e.toString()
+                            sleep(90)
+                            echo "Retrying..."
+                            sh "chmod 777 monkey.sh && ./monkey.sh ${device} ${apk} ${TIME} ${ver} ${type} ${REPORT_SERVER} \"${causer}\" ${currentBuild.number}"
                         }
-                    } catch(Exception e) {
-                        echo e.toString()
-                    }
+                        try {
+                            if (new Boolean(send_mail)){
+                                def crashes = readFile encoding: 'utf-8', file: "crashes-${type}.txt"
+                                def stats = readJSON file: "crashes-stats-${type}.json"
+                                def count = 0
+                                if (!crashes.contains("No crashes found") && crashes.contains("Crash #")){
+                                    count = crashes.split("Crash # ")[-1].split(" ")[0]
+                                }
+                                //def body = crashes
+                                def body = "Found ${stats['all']} crashes, ${stats['unique']} unique crashes, ${stats['new']} new.\nSee: ${stats['url']}"
+                                body += "\nSee jenkins log:\n\t${env['BUILD_URL']}console"
+                                emailext mimeType: 'text/html', body: "<pre>${body}</pre>", subject: "Monkey test result version ${actual_type}-${beta}-${ver}. Found ${count} crashes.", to: 'k.kravchuk@mapswithme.com,a.blinchikov@corp.mail.ru'
+                            }
+                        } catch(Exception e) {
+                            echo e.toString()
+                        }
 
-                    archiveArtifacts allowEmptyArchive: true, artifacts: '*.txt,*.json'
-                } else {
-                    echo "No ${actual_type} apk found!"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: '*.txt,*.json'
+                    } else {
+                        echo "No ${actual_type} apk found!"
+                    }
                 }
-            }
-	    }
+    	    }
+        }
 	}
 }

@@ -1,11 +1,11 @@
 node("autotest"){
     stage('git') {
         deleteDir()
-        git credentialsId: 'ssh-autotest', branch: git_branch, url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
+        git credentialsId: 'jenkins-github-ssh', branch: git_branch, url: 'git@github.com:mapsme/autotest.git'
     }
     
     stage('build'){
-        dir('mapsme-appium') {
+        dir('general-ui-autotests/mapsme-appium') {
             sh 'python3 setup.py bdist_wheel'
         }
     }

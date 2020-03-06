@@ -5,9 +5,7 @@ node('naboo') {
 
     stage('git') {
         deleteDir()
-        withCredentials([sshUserPrivateKey(credentialsId: 'ssh-keniya', keyFileVariable: '~/.ssh/id_rsa.pub', passphraseVariable: '', usernameVariable: '')]) {
-            sh 'git clone -b ${git_branch} ssh://git@bitbucket.mail.ru:2222/mauto/hardware-autotests.git'
-        }
+        git credentialsId: 'jenkins-github-ssh', branch: git_branch, url: 'git@github.com:mapsme/autotest.git' 
     }
 
     stage('copy artifacts') {
@@ -58,19 +56,24 @@ node('naboo') {
 
                     pytest_start = pytest_start + str
 
-                    sh """#!/bin/bash
-                    export WORKSPACE=`pwd`
 
-                    python3 -m venv ./autotest
-                    source ./autotest/bin/activate
+                    withCredentials([usernamePassword(credentialsId: 'booking-credentials', passwordVariable: 'booking_api_pass', usernameVariable: 'booking_api_user'), usernamePassword(credentialsId: 'qatest', passwordVariable: 'test_pass', usernameVariable: 'test_user'),
+                    usernamePassword(credentialsId: 'kkravchuk-token', passwordVariable: 'jenkins_token', usernameVariable: 'jenkins_user')]) {
 
-                    pip3 install -r $WORKSPACE/hardware-autotests/mapsme/requirements.txt
-                    whl=`find *.whl`
-                    echo \$whl
-                    pip3 install \$WORKSPACE/\$whl
-                    ${pytest_start}
+                        sh """#!/bin/bash
+                        export WORKSPACE=`pwd`
 
-                    """
+                        python3 -m venv ./autotest
+                        source ./autotest/bin/activate
+
+                        pip3 install -r $WORKSPACE/hardware-autotests/mapsme/requirements.txt
+                        whl=`find *.whl`
+                        echo \$whl
+                        pip3 install \$WORKSPACE/\$whl
+                        ${pytest_start}
+
+                        """
+                    }
                 } catch(Exception e) {
                     echo e.toString()
                 }

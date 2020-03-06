@@ -1,58 +1,64 @@
 node("autotest"){
     stage('git') {
         deleteDir()
-        git credentialsId: 'ssh-autotest', branch: "master", url: 'ssh://git@bitbucket.mail.ru:2222/mauto/general-ui-autotests.git'
+        git credentialsId: 'jenkins-github-ssh', branch: "master", url: 'git@github.com:mapsme/autotest.git'
     }
     stage('check') {
-        sh "python3 check_space.py"
+	dir('general-ui-autotests') {
+        	sh "python3 check_space.py"
+	}
     }
     
     stage("copy artifacts") {
         if (currentBuild.previousBuild) {
-            try {
-                copyArtifacts projectName: currentBuild.projectName,
+	    dir('general-ui-autotests') {
+            	try {
+                    copyArtifacts projectName: currentBuild.projectName,
                     selector: specific("${currentBuild.previousBuild.number}"),
                     target: 'old'
-            } catch(err) {
-                // ignore error
-            }
+            	} catch(err) {
+                	// ignore error
+            	}
+	    }
         }
     }
     
     stage("changes") {
-        archiveArtifacts allowEmptyArchive: true, artifacts: 'space.txt', onlyIfSuccessful: true
-        try {
-            def ch = readFile 'space.txt'
-            def previousFile = ""
-            try{
-                previousFile = readFile 'old/space.txt'
-                echo previousFile
-            } catch (err) {
-                echo err.toString()
-            }
+	dir('general-ui-autotests') {
+        	archiveArtifacts allowEmptyArchive: true, artifacts: 'space.txt', onlyIfSuccessful: true
+        	try {
+            	def ch = readFile 'space.txt'
+            	def previousFile = ""
+            	try{
+                	previousFile = readFile 'old/space.txt'
+                	echo previousFile
+            	} catch (err) {
+                	echo err.toString()
+            	}
             
-            boolean should_msg = false
+            	boolean should_msg = false
             
-            def current_devices = ch.split("\n")[1..-1].collect{ it.replaceAll("\t", "").split(":")[0] }
-            def old_devices = []
-            if (previousFile != "") {
-               old_devices = previousFile.split("\n")[1..-1].collect{ it.replaceAll("\t", "").split(":")[0] }
-               if (old_devices != current_devices) {
-                   should_msg = true
-               }
-            } else {
-                should_msg = true
-            }
-            echo current_devices.toString()
-            echo old_devices.toString()
-            echo should_msg.toString()
-            if (should_msg) {
-                emailext mimeType: 'text/html', body: "<pre>${ch}</pre>", subject: "Device space warning! ${new Date()}",
+            	def current_devices = ch.split("\n")[1..-1].collect{ it.replaceAll("\t", "").split(":")[0] }
+            	def old_devices = []
+            	if (previousFile != "") {
+               		old_devices = previousFile.split("\n")[1..-1].collect{ it.replaceAll("\t", "").split(":")[0] }
+                if (old_devices != current_devices) {
+                    should_msg = true
+                }
+            	} else {
+                	should_msg = true
+            	}
+            	echo current_devices.toString()
+            	echo old_devices.toString()
+            	echo should_msg.toString()
+            	if (should_msg) {
+                	emailext mimeType: 'text/html', body: "<pre>${ch}</pre>", subject: "Device space warning! ${new Date()}",
                      to: 'k.kravchuk@mapswithme.com,a.blinchikov@corp.mail.ru'
-            }
-        } catch (Exception e) {
-            echo e.toString()
-        }
+            	}
+        	} catch (Exception e) {
+            		echo e.toString()
+        	}
+	}
     }
     
     
