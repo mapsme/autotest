@@ -1,0 +1,7 @@
+*.apk
+*.ipa
+.idea
+maps.me.app
+.DS_Store
+um24c/node_modules/
+*/**/dump.json
