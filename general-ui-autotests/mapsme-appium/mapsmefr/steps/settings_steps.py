@@ -4,6 +4,7 @@ from time import sleep
 from mapsmefr.steps.base_steps import CommonSteps, check_not_crash, screenshotwrap
 from mapsmefr.steps.locators import Locator, LocalizedButtons, LocalizedSettings
 from mapsmefr.utils.driver import WebDriverManager
+from mapsmefr.utils.tools import get_settings
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -116,6 +117,12 @@ class AndroidSettingsSteps(SettingsSteps):
             WebDriverWait(self.driver, 150).until(EC.staleness_of(in_progress))
         except NoSuchElementException as nse:
             pass
+
+    def login_osm(self):
+        self.try_get(Locator.LOGIN_OSM.get()).click()
+        self.try_get(Locator.OSM_USERNAME_FIELD.get()).send_keys(get_settings("Tests", "osm_user"))
+        self.try_get(Locator.OSM_PASSWORD_FIELD.get()).send_keys(get_settings("Tests", "osm_pass"))
+        self.try_get(Locator.ENTER_OSM_BUTTON.get()).click()
 
 
 class IosSettingsSteps(SettingsSteps):

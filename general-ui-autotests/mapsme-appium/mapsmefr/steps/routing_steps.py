@@ -5,6 +5,7 @@ from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, screenshotwrap
 from mapsmefr.steps.locators import LocalizedButtons, Locator
 from mapsmefr.utils import expected_conditions as EC2
 from mapsmefr.utils.driver import WebDriverManager
+from mapsmefr.utils.tools import get_settings
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -25,6 +26,9 @@ class RoutingSteps:
     @screenshotwrap("Добавить пункт в маршрут")
     def click_add_stop(self):
         BottomPanel().add_stop().click()
+
+    def terminate_taxi_app(self):
+        pass
 
 
 class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
@@ -85,6 +89,14 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
 
     def assert_route_type(self, route_type):
         assert self.try_get(route_type).get_attribute("checked") == "true"
+
+    def terminate_taxi_app(self):
+        self.driver.execute_script("mobile: shell",
+                                   {'command': "am force-stop {}".format(get_settings("Tests", "partner_taxi"))})
+
+    def assert_taxi_opened(self):
+        assert get_settings("Tests", "partner_taxi") in self.driver.execute_script("mobile: shell", {
+            'command': "dumpsys window windows | grep -E 'mObscuringWindow|mHoldScreenWindow|mCurrentFocus'"})
 
 
 class IosRoutingSteps(RoutingSteps, IosSteps):

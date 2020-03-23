@@ -139,6 +139,8 @@ class LocalizedButtons(Localized):
     ACTIVITY = {"ru": "Активность", "en": "Activity"}
     CONTINUE = {"ru": "Продолжить", "en": "Continue"}
     CONTINUE_SIGN_IN = {"ru": "Дальше", "en": "Continue"}
+    ORDER_TAXI = {"ru": "Заказать такси", "en": "Order a taxi"}
+
 
 class BookingButtons(Localized):
     MORE_ON_BOOKING_BUTTON = {"ru": "Больше на Booking.com", "en": "More on Booking.com"}
@@ -277,6 +279,12 @@ class Locator(Enum):
     HOTEL_PP_TAXI_VEZET = {"IOS": "ic_taxi_logo_vezet", "Android": "ll__place_page_taxi"}
 
     NOT_NOW = {"IOS": LocalizedButtons.NOT_NOW, "Android": "show_on_map_decline_btn"}
+
+    CUISINE = {"Android": "cuisine", "IOS": None}
+    LOGIN_OSM = {"Android": "login_osm", "IOS": None}
+    OSM_USERNAME_FIELD = {"Android": "osm_username", "IOS": None}
+    OSM_PASSWORD_FIELD = {"Android": "osm_password", "IOS": None}
+    ENTER_OSM_BUTTON = {"Android": "login", "IOS": None}
 
     def get(self):
         if get_settings("System", "platform") == "Android":
