@@ -1,0 +1,107 @@
+.webixappstart{
+    opacity:0;
+}
+.webixapp{
+    transition: opacity 500ms;
+    opacity: 1;
+}
+
+@-webkit-keyframes formshake {
+    8%, 41% {
+        -webkit-transform: translateX(-10px);
+    }
+    25%, 58% {
+        -webkit-transform: translateX(10px);
+    }
+    75% {
+        -webkit-transform: translateX(-5px);
+    }
+    92% {
+        -webkit-transform: translateX(5px);
+    }
+    0%, 100% {
+        -webkit-transform: translateX(0);
+    }
+}
+
+/*siberia theme*/
+.webix_layout_toolbar.webix_toolbar.form-bottom-bar{
+	background: #34495E;
+}
+
+.center{
+	text-align: center;
+}
+
+.app-left-panel .webix_menu .webix_list_item.spacer:hover{
+	background: transparent;
+	cursor:default;
+}
+.webixapp{
+	background: #34495e;
+}
+.webix_layout_clean{
+	background: white;
+}
+
+/* unradius borders */
+.webix_menu {
+	border-radius: 0px;
+}
+
+.status_passed {
+        font-weight:bold;
+        color:#08b214;
+}
+
+.status_failed {
+        font-weight:bold;
+        color:#ce0404;
+}
+
+.status_inprogress {
+        font-weight:bold;
+        color:#a39f9f;
+}
+
+.status_active {
+        font-weight:bold;
+}
+
+.property_qwe {
+        width: 460px !important;
+        margin-left: 40px !important;
+        margin-top: 20px !important;
+        margin-bottom: 40px !important;
+        border-width: 1px !important;
+        position: relative !important;
+        height: 140px !important;
+}
+.webix_property_value {
+    width: 260px !important;
+}
+
+
+.release_status_new {
+    background-color: #ededed !important;
+    border-left: 1px solid #fff !important;
+    border-bottom: 1px solid #fff !important;
+}
+
+.release_status_work {
+    background-color: #f9f0e0 !important;
+    border-left: 1px solid #fff !important;
+    border-bottom: 1px solid #fff !important;
+}
+
+.release_status_done {
+    background-color: #e6f9e0 !important;
+    border-left: 1px solid #fff !important;
+    border-bottom: 1px solid #fff !important;
+}
+
+.archive {
+    color: #c10707 !important;
+    padding: 5px 10px;
+    font-size: 120%;
+}
