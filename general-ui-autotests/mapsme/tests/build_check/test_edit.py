@@ -22,11 +22,8 @@ class TestEditMapsme:
         steps.driver.implicitly_wait(3)
         edit_button = steps.scroll_down_to_element(locator=Locator.EDIT_PLACE_BUTTON, scroll_time=15)
         edit_button.click()
-        cuis_button = steps.scroll_down_to_element(locator=Locator.CUISINE, scroll_time=15)
-        cuis_button.click()
-        steps.try_get(Locator.SEARCH_FIELD.get()).send_keys("arab")
-        assert len(steps.driver.find_elements_by_id(Locator.CUISINE.get())) == 1
-        assert steps.try_get(Locator.CUISINE.get()).text == "Арабская кухня"
+        steps.edit_cuisine("arab", type=LocalizedCategories.BURGER.get())
+        steps.assert_cuisine_in_list(LocalizedCategories.ARAB_CUISINE.get())
 
     @pytest.mark.name("Редактирование этажности здания с отправкой правок в OSM")
     def test_edit_building_with_osm(self, main, download_moscow_map, steps, settings_steps, osm_changes_reset):

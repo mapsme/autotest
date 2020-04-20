@@ -30,9 +30,6 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
                 filename = 'before_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
                                                      datetime.now().strftime("%H_%M_%S"))
                 screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
-                # image_64_decode = base64.b64decode(screencap)
-                # with open(filename, 'wb') as ff:
-                #    ff.write(image_64_decode)
                 test_r = None
                 try:
                     with open("testresult.txt", "r") as f:
@@ -59,9 +56,6 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
             filename = 'after_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
                                                 datetime.now().strftime("%H_%M_%S"))
             screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
-            # image_64_decode = base64.b64decode(screencap)
-            # with open(filename, 'wb') as ff:
-            #    ff.write(image_64_decode)
             test_r = None
             try:
                 with open("testresult.txt", "r") as f:
@@ -196,13 +190,18 @@ class CommonSteps(object):
                 else:
                     return self.driver.find_element_by_xpath(
                         "//*[contains(@text,'{0}') or contains(@value,'{0}') or contains(@label,'{0}') or contains(@text,'{1}') or contains(@value,'{1}') or contains(@label,'{1}') or contains(@text,'{2}') or contains(@value,'{2}') or contains(@label,'{2}')]"
-                            .format(text, text.upper(), text.lower))
+                            .format(text, text.upper(), text.lower()))
             except NoSuchElementException:
                 logging.info("Element not found")
                 return None
         sleep(2)  # for really slow phones heey hi kludges
-        for i, el in enumerate(self.driver.find_elements_by_id(locator.get())):
-            if text in el.text:
+        loc = locator
+        if isinstance(locator, Locator):
+            loc = locator.get()
+        for i, el in enumerate(self.driver.find_elements_by_id(loc)):
+            if not strict and text in el.text:
+                return el, i
+            if strict and text == el.text:
                 return el, i
         else:
             return None, None
@@ -220,82 +219,12 @@ class BaseSteps(CommonSteps):
         else:
             return IosSteps()
 
-    def choose_first_search_result(self, category=None):
-        pass
-
-    def scroll_down_to_element(self, xpath=None, locator=None, scroll_time=120):
-        pass
-
     def assert_element_presence(self, locator):
         assert self.driver.find_element_by_id(locator.get())
 
-    def accept_privacy_policy(self):
-        pass
-
-    def download_map(self, country_name, state_name, *loc_names):
-        pass
-
-    def search(self, loc, click_search_button=True):
-        pass
-
-    @screenshotwrap(stepname="Нажатие на кнопку поиска")
     def click_search_button(self):
         button = self.try_get(Locator.SEARCH_BUTTON.get()) or self.try_get(Locator.SEARCH_BUTTON_ROUTING.get())
         button.click()
-
-    def assert_pp(self, text):
-        pass
-
-    def assert_category_on_pp(self, text):
-        pass
-
-    def download_map_from_pp(self):
-        pass
-
-    def press_back_until_main_page(self):
-        pass
-
-    def delete_map(self, country_name, state_name, city_name):
-        pass
-
-    def try_find_map_with_scroll(self, name):
-        pass
-
-    def edit_level_field(self, new_value):
-        pass
-
-    def find_and_click_send(self):
-        pass
-
-    def show_place_on_map(self, country_name, state_name, city_name):
-        pass
-
-    def stop_routing(self):
-        pass
-
-    def off_wifi(self):
-        pass
-
-    def on_wifi(self):
-        pass
-
-    def switch_to_native(self):
-        pass
-
-    def enable_google_geolocation(self):
-        pass
-
-    def wait_map_download(self, map_name):
-        pass
-
-    def wait_map_auto_download(self, map_name):
-        pass
-
-    def assert_map_downloaded(self, country_name, state_name, city_name):
-        pass
-
-    def assert_map_deleted(self, country_name, state_name, city_name):
-        pass
 
     def click_categories(self):
         categories = self.try_get_by_text(text=LocalizedButtons.SEARCH_CATEGORIES_TAB.get())
@@ -303,17 +232,39 @@ class BaseSteps(CommonSteps):
             categories = self.try_get(LocalizedButtons.SEARCH_CATEGORIES_TAB.get())
         categories.click()
 
-    def choose_category_in_list(self, category_name):
-        pass
-
-    def restart_app(self):
-        pass
-
-    def pp_get_title(self):
-        pass
-
 
 class AndroidSteps(BaseSteps):
+
+    @screenshotwrap("Редактировать тип кухни ресторана")
+    def edit_cuisine(self, cuisine, type=None):
+        cuis_button = self.scroll_down_to_element(locator=Locator.CUISINE, scroll_time=15)
+        cuis_button.click()
+        self.try_get(Locator.SEARCH_FIELD.get()).send_keys(cuisine)
+
+    @screenshotwrap("Проверить наличие кухни в списке", two_screenshots=False)
+    def assert_cuisine_in_list(self, cuisine):
+        assert len(self.driver.find_elements_by_id(Locator.CUISINE.get())) == 1
+        assert self.try_get(Locator.CUISINE.get()).text == cuisine
+
+    def assert_catalog_promo(self, no=False):
+        if no:
+            assert not self.try_get(Locator.CATALOG_PROMO_PP.get())
+        else:
+            assert self.try_get(Locator.CATALOG_PROMO_PP.get())
+
+    def assert_promo_card(self, no=False):
+        if no:
+            assert not self.try_get(Locator.PROMO_POI_CARD.get())
+            assert not self.try_get(Locator.PROMO_POI_DESCRIPTION.get())
+            assert not self.try_get(Locator.PROMO_POI_CTA_BUTTON.get())
+        else:
+            assert self.try_get(Locator.PROMO_POI_CARD.get())
+            assert self.try_get(Locator.PROMO_POI_DESCRIPTION.get())
+            assert self.try_get(Locator.PROMO_POI_CTA_BUTTON.get())
+
+    @screenshotwrap(stepname="Закрыть рекламу")
+    def click_ad_close(self):
+        self.try_get(Locator.AD_CLOSE.get()).click()
 
     @check_not_crash
     @screenshotwrap(stepname="Выбор результата из списка")
@@ -425,6 +376,8 @@ class AndroidSteps(BaseSteps):
                 except NoSuchElementException as nse:
                     pass
                 city, num = self.try_get_by_text(locator=Locator.NAME, text=loc_name.get())
+                if city is None:
+                    city, num = self.try_get_by_text(locator=Locator.FOUND_NAME, text=loc_name.get())
                 assert city, "Element not found!"
                 self.driver.find_elements_by_id(Locator.DOWNLOAD_ICON.get())[num].click()
                 logging.info("Wait {} map downloading".format(loc_name.get()))
@@ -456,7 +409,25 @@ class AndroidSteps(BaseSteps):
         assert text in self.driver.find_element_by_id(Locator.TV_TITLE.get()).text
 
     def assert_category_on_pp(self, text):
-        pass
+        assert text in self.try_get(Locator.PP_SUBTITLE.get()).text
+
+    @screenshotwrap(stepname="Проверить описание")
+    def assert_poi_description(self, part_of_text, no=False):
+        if no:
+            assert self.try_get(Locator.POI_DESCRIPTION.get()) is None
+        else:
+            assert self.try_get(Locator.POI_DESCRIPTION.get())
+            assert part_of_text in self.try_get(Locator.POI_DESCRIPTION.get()).text
+
+    def assert_buttons_order(self, *button_names):
+        for i, bn in enumerate(button_names):
+            b, j = self.try_get_by_text(bn.upper(), locator="title", strict=True)
+            assert i == j
+
+    def assert_buttons_more_order(self, *button_names):
+        for i, bn in enumerate(button_names):
+            b, j = self.try_get_by_text(bn, locator="bs_list_title", strict=True)
+            assert i == j
 
     @check_not_crash
     def press_back_until_main_page(self):
@@ -496,7 +467,8 @@ class AndroidSteps(BaseSteps):
         city, _ = self.try_find_map_with_scroll(city_name.get())
 
         if city:
-            city.click()
+            TouchAction(self.driver).long_press(city).perform()
+            # city.click()
             self.try_get_by_text(text=LocalizedButtons.DELETE.get()).click()
 
         self.press_back_until_main_page()
@@ -572,6 +544,7 @@ class AndroidSteps(BaseSteps):
                 pass
         self.driver.implicitly_wait(10)
 
+    @screenshotwrap("Подождать загрузку карты")
     def wait_map_download(self, map_name):
         in_progress = self.try_get("onmap_downloader")
         assert self.try_get_by_text(map_name)
@@ -580,11 +553,13 @@ class AndroidSteps(BaseSteps):
         button_download.click()
         WebDriverWait(self.driver, 120).until(EC.staleness_of(in_progress))
 
+    @screenshotwrap("Подождать автозагрузку карты")
     def wait_map_auto_download(self, map_name):
         in_progress = self.try_get("onmap_downloader")
         if in_progress:
             WebDriverWait(self.driver, 60).until(EC.staleness_of(in_progress))
 
+    @screenshotwrap("Скачать карту с PP")
     def download_map_from_pp(self):
         download = BottomPanel().download()
         download.click()
@@ -609,6 +584,57 @@ class AndroidSteps(BaseSteps):
 
 
 class IosSteps(BaseSteps):
+
+    @screenshotwrap(stepname="Закрыть рекламу")
+    def click_ad_close(self):
+        self.driver.find_elements_by_xpath(
+            "//*[@type='XCUIElementTypeOther' and ./*[@name='{}']]/*[@type='XCUIElementTypeButton']"
+                .format(Locator.AD_CLOSE.get()))[0].click()
+
+    @screenshotwrap("Редактировать тип кухни ресторана")
+    def edit_cuisine(self, cuisine, type):
+        self.try_get_by_xpath("//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]".format(type)).click()
+        self.try_get(LocalizedButtons.SEARCH.get()).send_keys(cuisine)
+
+    @screenshotwrap("Проверить наличие кухни в списке", two_screenshots=False)
+    def assert_cuisine_in_list(self, cuisine):
+        assert len(self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']")) == 1
+        assert self.try_get(cuisine)
+
+    @screenshotwrap(stepname="Проверить описание")
+    def assert_poi_description(self, description, no=False):
+        if no:
+            assert not self.try_get_by_text(description, strict=False)
+        else:
+            assert self.try_get_by_text(description, strict=False)
+
+    def assert_promo_card(self, no=False):
+        if no:
+            assert not self.try_get(LocalizedButtons.THIS_PLACE_IN_GUIDES.get())
+            assert not self.try_get(Locator.PROMO_POI_CTA_BUTTON.get())
+        else:
+            assert self.try_get(LocalizedButtons.THIS_PLACE_IN_GUIDES.get())
+            assert self.try_get(Locator.PROMO_POI_CTA_BUTTON.get())
+
+    def assert_buttons_order(self, *button_names):
+        buttons = self.driver.find_elements_by_xpath(
+            "//*[@type='XCUIElementTypeOther' and .//*[@name='{}']]/*[@type='XCUIElementTypeOther']/*[@type='XCUIElementTypeStaticText']".format(
+                button_names[0]))
+        for i, bn in enumerate(button_names):
+            if bn == LocalizedButtons.BOOKMARK.get():
+                bn = LocalizedButtons.SAVE.get()
+            assert buttons[i].text == bn
+
+    def assert_buttons_more_order(self, *button_names):
+        buttons = self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeButton']")
+        for i, bn in enumerate(button_names):
+            assert buttons[i].text == bn
+
+    def assert_catalog_promo(self, no=False):
+        if no:
+            assert not self.try_get_by_xpath("//*[@type='XCUIElementTypeCollectionView']")
+        else:
+            assert self.try_get_by_xpath("//*[@type='XCUIElementTypeCollectionView']")
 
     @check_not_crash
     @screenshotwrap(stepname="Выбор результата из списка")
@@ -754,15 +780,28 @@ class IosSteps(BaseSteps):
                 sleep(3)
                 for i, el in enumerate(self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']")):
                     els = el.find_elements_by_xpath("./*[@type='XCUIElementTypeStaticText']")
-                    need_el = els[1]
-                    if len(els) <= 3:
-                        need_el = els[0]
-                    if loc_name.get() in need_el.text:
-                        city = el
+                    # need_el = els[1]
+                    # if len(els) <= 3:
+                    #    need_el = els[0]
+                    # if loc_name.get() in need_el.text:
+                    #    city = el
+                    #    num = i
+                    if els[0].text == loc_name.get() or els[1].text == loc_name.get():
+                        city = els[0] if els[0].text == loc_name.get() else els[1]
                         num = i
                         break
                 assert city, "Element not found!"
-                self.driver.find_elements_by_id(Locator.DOWNLOAD_ICON.get())[num].click()
+                # self.driver.find_elements_by_id(Locator.DOWNLOAD_ICON.get())[num].click()
+                TouchAction(self.driver).long_press(self.driver.find_elements_by_xpath("//*[@name='{}' or @name='{}']"
+                                                                                       .format(
+                    Locator.FOLDER_ICON.get(), Locator.DOWNLOAD_ICON.get()))[num], duration=2000) \
+                    .wait(500).release().perform()
+                up = "ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+                low = "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+                self.try_get_by_xpath(
+                    "//*[contains(translate(@name, '{}', '{}'),'{}') or contains(translate(@name, '{}', '{}'),'{}')]"
+                        .format(up, low, LocalizedButtons.DOWNLOAD_MAP_BUTTON.get().lower(),
+                                up, low, LocalizedButtons.DOWNLOAD_ALL_BUTTON.get().lower())).click()
                 WebDriverWait(self.driver, 150).until(EC.presence_of_element_located((By.ID, "ic check")))
 
                 self.driver.find_element_by_id(LocalizedButtons.CANCEL.get()).click()
@@ -805,11 +844,13 @@ class IosSteps(BaseSteps):
     @check_not_crash
     def press_back_until_main_page(self):
         # logging.info("Go back to main page")
+        if self.try_get(LocalizedButtons.SIGN_IN_WITH.get()):
+            TouchAction(self.driver).tap(x=100, y=100).perform()
         self.close_first_time_frame()
         self.driver.implicitly_wait(3)
         self._press_back_all(Locator.SEND.get(), LocalizedButtons.CANCEL.get(), LocalizedButtons.CANCELLATION.get(),
                              Locator.CANCEL_BUTTON.get(), "goBackButton", LocalizedButtons.BACK.get(), "ic cancel",
-                             "notNowButton")
+                             "notNowButton", "ic nav bar back")
 
         anchor_timeout = time.time() + 30  # 30s from now
 
@@ -818,6 +859,9 @@ class IosSteps(BaseSteps):
             if el.get_attribute("visible") == "true" and \
                     self.driver.find_element_by_id(Locator.PP_ANCHOR.get()).location["y"] > 70:
                 self.scroll_up(from_el=el)
+                el = self.try_get(Locator.PP_ANCHOR.get())
+                if el:
+                    self.scroll_up(from_el=el)
             else:
                 while self.driver.find_element_by_id(Locator.PP_ANCHOR.get()).location["y"] < 50:
                     self.scroll_up()
@@ -835,6 +879,10 @@ class IosSteps(BaseSteps):
                             "//*[@type='XCUIElementTypeScrollView']/*[@type='XCUIElementTypeOther']").location[
                             "y"] > 70:
                     self.scroll_up(from_el=el)
+                    el = self.try_get_by_xpath(
+                        "//*[@type='XCUIElementTypeScrollView']/*[@type='XCUIElementTypeOther']")
+                    if el:
+                        self.scroll_up(from_el=el)
                 else:
                     while self.try_get_by_xpath(
                             "//*[@type='XCUIElementTypeScrollView']/*[@type='XCUIElementTypeOther']").location[
@@ -859,11 +907,9 @@ class IosSteps(BaseSteps):
             self.driver.back()
             if time.time() > timeout:
                 break
-        try:
-            BottomPanel().to().click()
+
+        if BottomPanel().to():
             self._press_back_all("goBackButton", "notNowButton")
-        except NoSuchElementException:
-            pass
         self.driver.implicitly_wait(10)
 
     def _press_back_all(self, *locators):
@@ -898,29 +944,33 @@ class IosSteps(BaseSteps):
                     sleep(1)
                     state.click()
 
-        city, _ = self.try_find_map_with_scroll(city_name)
+        city, num = self.try_find_map_with_scroll(city_name)
 
         if city:
             sleep(1)
-            city.click()
+            TouchAction(self.driver).long_press(self.driver.find_elements_by_xpath("//*[@name='{}' or @name='{}']"
+                                                                                   .format(Locator.FOLDER_ICON.get(),
+                                                                                           Locator.DOWNLOADED_ICON.get()))[
+                                                    num], duration=2000) \
+                .wait(500).release().perform()
             self.try_get(Locator.DELETE_MAP.get()).click()
 
         self.press_back_until_main_page()
 
     def try_find_map_with_scroll(self, name):
-        country, _ = self.try_get_by_text(locator=name, text=name.get())
+        country, _ = self.try_get_by_text(locator=name.get(), text=name.get())
         if not country:
             old_page_elements = [x.text for x in
                                  self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeStaticText']")]
             self.scroll_down()
-            country, _ = self.try_get_by_text(locator=name, text=name.get())
+            country, _ = self.try_get_by_text(locator=name.get(), text=name.get())
             new_page_elements = [x.text for x in
                                  self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeStaticText']")]
             timeout = time.time() + 60
             while not country and old_page_elements != new_page_elements:
                 old_page_elements = new_page_elements
                 self.scroll_down()
-                country, _ = self.try_get_by_text(locator=name, text=name.get())
+                country, _ = self.try_get_by_text(locator=name.get(), text=name.get())
                 new_page_elements = [x.text for x in
                                      self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeStaticText']")]
                 if time.time() > timeout:
@@ -1139,20 +1189,23 @@ class AndroidBookingSteps(BookingSteps, AndroidSteps):
         else:
             assert False
 
-    def search_osm_hotel(self, hotel_name="SkyPoint"):
+    def search_osm_hotel(self, hotel_name="SkyPoint", category=None):
         self.search(hotel_name)
-        results = self.driver.find_elements_by_xpath(
-            "//*[@class='android.widget.RelativeLayout' and ./*[@resource-id='{}']]".format(Locator.TITLE.get()))
-        for i, el in enumerate(results):
-            els = self.driver.find_elements_by_xpath(
-                "//*[@class='android.widget.RelativeLayout' and ./*[@resource-id='{}']][{}]/*".format(
-                    Locator.TITLE.get(), i + 1))
-            if len(els) == 4 and els[0].text in hotel_name:
-                el.click()
-                sleep(1)
-                break
+        if category:
+            self.choose_first_search_result(category=category)
         else:
-            assert False
+            results = self.driver.find_elements_by_xpath(
+                "//*[@class='android.widget.RelativeLayout' and ./*[@resource-id='{}']]".format(Locator.TITLE.get()))
+            for i, el in enumerate(results):
+                els = self.driver.find_elements_by_xpath(
+                    "//*[@class='android.widget.RelativeLayout' and ./*[@resource-id='{}']][{}]/*".format(
+                        Locator.TITLE.get(), i + 1))
+                if len(els) == 4 and els[0].text in hotel_name:
+                    el.click()
+                    sleep(1)
+                    break
+            else:
+                assert False
 
     def assert_available_hotels_in_search(self):
         sleep(5)  # чтобы успело прогрузиться на тормозящих телефонах
@@ -1202,7 +1255,7 @@ class AndroidBookingSteps(BookingSteps, AndroidSteps):
 
         sleep(5)  # чтобы успело прогрузиться на тормозящих телефонах
 
-        for _ in range(3):
+        for _ in range(5):
             results = [x.text for x in self.driver.find_elements_by_id("price_category")]
             for res in results:
                 if res == "$":
@@ -1245,7 +1298,7 @@ class IosBookingSteps(BookingSteps, IosSteps):
         results = self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']")
         for i, el in enumerate(results):
             els = el.find_elements_by_xpath("./*")
-            if len(els) > 8 and els[1].text == hotel_name:
+            if len(els) > 8 and els[1].text == hotel_name or els[2].text == hotel_name:
                 el.click()
                 break
             if len(els) == 8 and els[0].text == hotel_name:
@@ -1254,16 +1307,22 @@ class IosBookingSteps(BookingSteps, IosSteps):
         else:
             assert False
 
-    def search_osm_hotel(self, hotel_name="SkyPoint"):
+    def search_osm_hotel(self, hotel_name="SkyPoint", category=None):
         self.search(hotel_name)
-        results = self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']")
-        for i, el in enumerate(results):
-            els = el.find_elements_by_xpath("./*")
-            if (len(els) <= 5 or len(els) == 8) and els[0].text in hotel_name:
-                el.click()
-                break
+        if category:
+            self.choose_first_search_result(category=category)
         else:
-            assert False
+            results = self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']")
+            for i, el in enumerate(results):
+                els = el.find_elements_by_xpath("./*")
+                if (len(els) <= 5 or len(els) == 8) and els[0].text in hotel_name:
+                    el.click()
+                    break
+                if (len(els) > 8) and els[2].text in hotel_name:
+                    el.click()
+                    break
+            else:
+                assert False
 
     def close_after_booked_window(self):
         window = self.try_get(LocalizedButtons.CANCEL.get())

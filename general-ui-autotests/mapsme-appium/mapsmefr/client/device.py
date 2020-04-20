@@ -145,8 +145,14 @@ class IOSDevice(Device):
             'platformVersion': self.platform_version,
             'deviceName': self.device_id,
             'udid': self.udid,
-            'startIWDP': True,
-            'webkitResponseTimeout': 30000
+            # 'startIWDP': True,
+            'webkitResponseTimeout': 30000,
+            "language": "ru",
+            "locale": "ru",
+            "safariLogAllCommunication": True,
+            "webviewConnectTimeout": 10000,
+            "includeSafariInWebviews": True,
+            # "fullContextList": True
 
         }
 

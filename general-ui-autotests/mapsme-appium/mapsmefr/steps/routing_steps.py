@@ -47,6 +47,7 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
         WebDriverWait(self.driver, 180).until(EC2.presence_one_of_elements_located(
             (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_NOT_FOUND.get())),
             (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_NOT_AVAILABLE.get())),
+            (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_IS_NOT_AVAILABLE_HERE.get())),
             (By.ID, Locator.TAXI_VEZET.get())))
 
     @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
@@ -65,7 +66,7 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
             download.click()
             in_progress = self.try_get(Locator.IN_PROGRESS_WHEEL.get())
             if in_progress:
-                WebDriverWait(self.driver, 180).until(
+                WebDriverWait(self.driver, 240).until(
                     EC2.element_to_be_dissapeared((By.ID, Locator.IN_PROGRESS_WHEEL.get())))
 
     @screenshotwrap("Проверить, что построился автомобильный маршрут", two_screenshots=False)
@@ -124,7 +125,9 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
     def wait_taxi_panel(self):
         WebDriverWait(self.driver, 180).until(EC2.presence_one_of_elements_located(
             (By.ID, Locator.TAXI_VEZET.get()), (By.ID, LocalizedButtons.TAXI_NOT_FOUND.get()),
-            (By.ID, LocalizedButtons.TAXI_NOT_AVAILABLE.get())))
+            (By.ID, LocalizedButtons.TAXI_NOT_AVAILABLE.get()),
+            (By.ID, LocalizedButtons.TAXI_IS_NOT_AVAILABLE_HERE.get()),
+            (By.ID, LocalizedButtons.TAXI.get())))
 
     @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
     def wait_metro_panel(self):
@@ -132,7 +135,7 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
         if WebDriverManager.get_instance().device.platform_version >= "13":
             els = self.driver.find_elements_by_xpath(
                 "//*[@type='XCUIElementTypeCollectionView']/*[@type='XCUIElementTypeCell']")
-            assert len(els) >= 3
+            assert len(els) >= 1
         else:
             WebDriverWait(self.driver, 180).until(
                 EC.presence_of_element_located((By.ID, Locator.ROUTE_METRO.get())))
@@ -144,7 +147,7 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
             download.click()
             in_progress = self.try_get(Locator.IN_PROGRESS_WHEEL.get())
             if in_progress:
-                WebDriverWait(self.driver, 180).until(
+                WebDriverWait(self.driver, 240).until(
                     EC2.element_to_be_dissapeared((By.ID, Locator.IN_PROGRESS_WHEEL.get())))
 
     @screenshotwrap("Проверить, что построился автомобильный маршрут", two_screenshots=False)

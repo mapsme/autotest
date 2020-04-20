@@ -5,3 +5,4 @@ requests
 Appium-Python-Client<=0.46
 selenium==3.141.0
 babel
+Pillow==7.1.1

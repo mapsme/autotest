@@ -1,8 +1,11 @@
 import logging
 from datetime import datetime, timedelta
+from time import sleep
 from urllib import parse
 
 import pytest
+from PIL import Image
+from appium.webdriver import WebElement
 from mapsmefr.pageobjects.base import BottomPanel
 from mapsmefr.pageobjects.booking_filter_page import SearchFilter
 from mapsmefr.steps.base_steps import BookingSteps
@@ -24,11 +27,12 @@ class TestBookingOnlyUiMapsme:
     def b_steps(self):
         yield BookingSteps.get()
 
+    @pytest.mark.skip
     @pytest.mark.name("[Hotels] Поиск по категории 'Отели', отображение кнопки фильтра")
     def test_search_hotels_category_filter(self, main, steps):
         steps.click_search_button()
         steps.click_categories()
-        steps.choose_category_in_list(LocalizedCategories.HOTELS.get())
+        steps.choose_category_in_list(LocalizedCategories.HOTEL.get())
 
         assert steps.try_get(Locator.HOTEL_FILTER.get())
         assert steps.try_get(LocalizedButtons.HOTEL_FILTER.get()) or steps.try_get_by_text(
@@ -46,12 +50,13 @@ class TestBookingOnlyUiMapsme:
         assert len(bad_reviews) + len(good_reviews) > 0
         assert b_steps.try_get(Locator.TAXI_VEZET.get()) or b_steps.try_get(Locator.HOTEL_PP_TAXI_VEZET.get())
 
+    @pytest.mark.skip
     @pytest.mark.name(
         "[Hotels] Поиск списком с применением фильтра онлайн - подстветка только отелей, удовлетворяющих требованиям по дате")
     def test_hotel_online_filter_list_dates(self, main, b_steps):
         b_steps.click_search_button()
         b_steps.click_categories()
-        b_steps.choose_category_in_list(LocalizedCategories.HOTELS.get())
+        b_steps.choose_category_in_list(LocalizedCategories.HOTEL.get())
         b_steps.try_get(Locator.HOTEL_FILTER.get()).click()
         s_filter = SearchFilter()
         s_filter.check_in().click()
@@ -66,18 +71,23 @@ class TestBookingOnlyUiMapsme:
         calend = calendar()
         calend.choose_date(when)
         calend.click_done()
+        sleep(5)
+        if b_steps.try_get(LocalizedButtons.SEARCH.get()):
+            b_steps.try_get(LocalizedButtons.SEARCH.get()).click()
+        sleep(5)
 
         s_filter.search_button().click()
-
+        sleep(5)
         b_steps.assert_available_hotels_in_search()
 
     @pytest.mark.name("[Hotels] UI фильтра (даты, рейтинг, ценовая категория, тип; применить и сбросить)")
-    def test_ui_hotel_filter(self, main, download_moscow_map, b_steps):
+    def test_ui_hotel_filter(self, main, b_steps):
         b_steps.click_search_button()
         b_steps.click_categories()
-        b_steps.choose_category_in_list(LocalizedCategories.HOTELS.get())
+        b_steps.choose_category_in_list(LocalizedCategories.HOTEL.get())
         b_steps.try_get(Locator.HOTEL_FILTER.get()).click()
         s_filter = SearchFilter()
+        assert s_filter.reset_button()
         assert s_filter.check_in()
         assert s_filter.check_out()
         assert s_filter.price_high()
@@ -87,6 +97,13 @@ class TestBookingOnlyUiMapsme:
         assert s_filter.rating_good()
         assert s_filter.rating_very_good()
         assert s_filter.rating_excellent()
+        assert s_filter.type(BookingButtons.HOSTEL.get()).location["y"] > s_filter.price_high().location["y"] > \
+               s_filter.rating_any().location["y"] > s_filter.check_in().location["y"]
+
+        self.assert_blue_rating(s_filter)
+        self.assert_blue_price(s_filter)
+
+        # TODO написать метод для каждого поля, напимер для рейтинга - что можно выбрать только один. делать скриншот элемента и проверять на синий цвет
 
         types = [BookingButtons.HOSTEL, BookingButtons.HOTEL, BookingButtons.APARTMENTS, BookingButtons.CAMPING,
                  BookingButtons.CHALET, BookingButtons.GUEST_HOUSE, BookingButtons.RESORT, BookingButtons.MOTEL]
@@ -94,16 +111,18 @@ class TestBookingOnlyUiMapsme:
         for t in types:
             assert s_filter.type(t.get())
 
+        self.assert_blue_type(s_filter)
+
         s_filter.rating_very_good().click()
         s_filter.search_button().click()
-
+        sleep(5)
         b_steps.assert_filtered_hotels(rating=8.0)
 
         b_steps.try_get(Locator.HOTEL_FILTER.get()).click()
         s_filter.rating_excellent().click()
         s_filter.price_medium().click()
         s_filter.search_button().click()
-
+        sleep(5)
         b_steps.assert_filtered_hotels(rating=9.0, price_category="$$")
 
         b_steps.try_get(Locator.HOTEL_FILTER.get()).click()
@@ -111,12 +130,86 @@ class TestBookingOnlyUiMapsme:
         s_filter.price_high().click()
         s_filter.type(BookingButtons.APARTMENTS.get()).click()
         s_filter.search_button().click()
-
+        sleep(5)
         b_steps.assert_filtered_hotels(rating=9.0, price_category="$$$", type=BookingButtons.APARTMENTS.get())
 
         b_steps.try_get(Locator.HOTEL_FILTER_CLEAR.get()).click()
 
+        sleep(5)
+
         b_steps.assert_hotel_filter_cleared(BookingButtons.APARTMENTS.get())
+
+    def assert_blue_price(self, s_filter):
+        s_filter.price_high().click()
+        s_filter.price_medium().click()
+
+        s_filter.price_high().screenshot("high.png")
+        s_filter.price_medium().screenshot("medium.png")
+        sleep(10)
+
+        assert self.get_coords("high.png")
+        assert self.get_coords("medium.png")
+
+        s_filter.price_high().click()
+        s_filter.price_medium().click()
+
+        s_filter.price_high().screenshot("high.png")
+        s_filter.price_medium().screenshot("medium.png")
+        sleep(10)
+
+        assert not self.get_coords("high.png")
+        assert not self.get_coords("medium.png")
+
+    def assert_blue_rating(self, s_filter):
+        s_filter.rating_good().click()
+        s_filter.rating_very_good().click()
+
+        s_filter.rating_any().screenshot("any.png")
+        s_filter.rating_good().screenshot("good.png")
+        s_filter.rating_very_good().screenshot("verygood.png")
+        sleep(10)
+
+        assert self.get_coords("verygood.png")
+        assert not self.get_coords("any.png")
+        assert not self.get_coords("good.png")
+
+    def assert_blue_type(self, s_filter):
+        s_filter.type(BookingButtons.GUEST_HOUSE.get()).click()
+        s_filter.type(BookingButtons.RESORT.get()).click()
+
+        s_filter.type(BookingButtons.GUEST_HOUSE.get()).screenshot("guest.png")
+        s_filter.type(BookingButtons.RESORT.get()).screenshot("resort.png")
+        sleep(10)
+        assert self.get_coords("guest.png")
+        assert self.get_coords("resort.png")
+
+        s_filter.type(BookingButtons.GUEST_HOUSE.get()).click()
+        s_filter.type(BookingButtons.RESORT.get()).click()
+
+        s_filter.type(BookingButtons.GUEST_HOUSE.get()).screenshot("guest.png")
+        s_filter.type(BookingButtons.RESORT.get()).screenshot("resort.png")
+        sleep(10)
+
+        assert not self.get_coords("guest.png")
+        assert not self.get_coords("resort.png")
+
+    def get_coords(self, filename):
+        img = Image.open(filename)
+        img = img.convert("RGB")
+
+        width, height = img.size
+
+        rg = None
+
+        for i in range(width):
+            for j in range(height):
+                x = img.getpixel((i, j))
+                if rg != x:
+                    rg = x
+                if rg == (23, 135, 219) or rg == (28, 147, 237):
+                    # android if rg == (36, 156, 242):
+                    return True
+
 
     @pytest.mark.webview
     @pytest.mark.releaseonly
@@ -200,3 +293,7 @@ class TestBookingOnlyUiMapsme:
         b_steps.switch_to_native()
         b_steps.close_first_time_frame()
         b_steps.press_back_until_main_page()
+
+    def test_booking_menu_button(self, main, steps):
+        steps.try_get(Locator.MENU_BUTTON.get()).click()
+        assert steps.try_get_by_text(BookingButtons.BOOKING_MENU_BTN.get())

@@ -51,6 +51,22 @@ class BookmarkSteps(BaseSteps):
 
 class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
 
+    def click_download_guides(self):
+        self.try_get(Locator.DOWNLOAD_GUIDES.get()).click()
+
+    def assert_section(self, section):
+        sections = [x.text for x in self.driver.find_elements_by_id("text")]
+        assert section in sections
+
+    def search_in_bookmarks(self, value):
+        self.try_get(Locator.BOOKMARKS_SEARCH.get()).click()
+        self.try_get(Locator.SEARCH_FIELD.get()).send_keys(value)
+        self.driver.hide_keyboard()
+
+    def click_sort(self):
+        self.try_get(Locator.BOOKMARKS_MORE.get()).click()
+        self.try_get_by_text(LocalizedButtons.BOOKMARKS_SORT.get(), strict=False).click()
+
     def athorize(self):
         self.press_back_until_main_page()
         self.click_bookmarks()
@@ -268,6 +284,19 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
 
 
 class IosBookmarkSteps(BookmarkSteps, IosSteps):
+
+    def click_download_guides(self):
+        self.driver.find_elements_by_xpath("//*[@name='{}']".format(Locator.DOWNLOAD_GUIDES.get()))[1].click()
+
+    def assert_section(self, section):
+        assert self.try_get(section)
+
+    def search_in_bookmarks(self, value):
+        self.try_get(Locator.BOOKMARKS_SEARCH.get()).send_keys(value)
+        self.driver.hide_keyboard()
+
+    def click_sort(self):
+        self.try_get_by_text(LocalizedButtons.BOOKMARKS_SORT.get(), strict=False).click()
 
     def athorize(self):
         self.press_back_until_main_page()

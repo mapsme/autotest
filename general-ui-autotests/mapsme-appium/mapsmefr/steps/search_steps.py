@@ -1,3 +1,5 @@
+import logging
+
 from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, screenshotwrap
 from mapsmefr.steps.locators import LocalizedCategories, Locator
 from mapsmefr.utils.driver import WebDriverManager
@@ -15,6 +17,12 @@ class SearchSteps:
         else:
             return IosSearchSteps()
 
+    def assert_popular_sights_list(self):
+        pass
+
+    def get_first_search_name(self):
+        pass
+
 
 class AndroidSearchSteps(SearchSteps, AndroidSteps):
 
@@ -31,6 +39,35 @@ class AndroidSearchSteps(SearchSteps, AndroidSteps):
             for res in results:
                 assert res.split()[0] in sights
 
+            self.scroll_down()
+
+    def assert_food_list(self):
+        sights = [LocalizedCategories.RESTAURANT.get(), LocalizedCategories.CAFE.get(),
+                  LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.BAR.get(),
+                  LocalizedCategories.PUB.get(), LocalizedCategories.FASTFOOD.get(),
+                  LocalizedCategories.GROCERY.get()]
+        for _ in range(3):
+            results = [x.text for x in self.driver.find_elements_by_id("description")]
+            for res in results:
+                assert res.split(" •")[0] in sights
+
+            self.scroll_down()
+
+    def assert_shops_list(self):
+        sights = [LocalizedCategories.MALL.get(), LocalizedCategories.CAFE.get(),
+                  LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.GROCERY.get()]
+        for _ in range(3):
+            results = [x.text for x in self.driver.find_elements_by_id("description")]
+            for res in results:
+                assert res.split(" •")[0] in sights
+
+            self.scroll_down()
+
+    def assert_title_contains(self, title, limit=5):
+        for _ in range(3):
+            results = [x.text for x in self.driver.find_elements_by_id("title")][:limit]
+            for res in results:
+                assert title.lower() in res.lower()
             self.scroll_down()
 
 
@@ -52,3 +89,36 @@ class IosSearchSteps(SearchSteps, IosSteps):
 
     def get_first_search_name(self):
         return self.try_get(Locator.TITLE.get()).text
+
+    def assert_food_list(self):
+        food = [LocalizedCategories.RESTAURANT.get(), LocalizedCategories.CAFE.get(),
+                LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.BAR.get(),
+                LocalizedCategories.PUB.get(), LocalizedCategories.FASTFOOD.get(),
+                LocalizedCategories.GROCERY.get()]
+        results = self.driver.find_elements_by_xpath(
+            "//*[@type='XCUIElementTypeTable']/*[@type='XCUIElementTypeCell']")
+        for res in results:
+            el = res.find_element_by_xpath("./*[@name='searchType']")
+            text = el.text
+            logging.info(text)
+            assert text in food
+
+    def assert_shops_list(self):
+        shops = [LocalizedCategories.MALL.get(), LocalizedCategories.CAFE.get(),
+                 LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.GROCERY.get(),
+                 LocalizedCategories.SHOP.get(), LocalizedCategories.CLOTHES_SHOP.get(),
+                 LocalizedCategories.BEAUTY_SHOP.get(), LocalizedCategories.JEWELRY.get(),
+                 LocalizedCategories.FLORISTS.get(), LocalizedCategories.CAR_SHOP.get(),
+                 LocalizedCategories.TICKET_SHOP.get(), LocalizedCategories.OPTICIAN.get()]
+        results = self.driver.find_elements_by_xpath(
+            "//*[@type='XCUIElementTypeTable']/*[@type='XCUIElementTypeCell']")
+        for res in results:
+            el = res.find_element_by_xpath("./*[@name='searchType']")
+            text = el.text
+            logging.info(text)
+            assert text in shops
+
+    def assert_title_contains(self, title, limit=5):
+        results = WebDriverManager.get_instance().driver.find_elements_by_id(Locator.TITLE.get())[:limit]
+        for res in results:
+            assert title.lower() in res.text.lower()
