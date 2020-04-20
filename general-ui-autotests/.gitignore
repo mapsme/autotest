@@ -1,0 +1,9 @@
+*.apk
+*.ipa
+.idea
+maps.me.app
+.DS_Store
+/mapsme-appium/build/*
+/mapsme-appium/dist/*
+/mapsme-appium/**/*.egg-info
+*/**/__pycache__/*
