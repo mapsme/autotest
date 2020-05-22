@@ -40,6 +40,7 @@ def pytest_addoption(parser):
     parser.addoption("--is-power", action="store_true", default=False)
     parser.addoption("--is-memory", action="store_true", default=False)
     parser.addoption("--is-standart", action="store_true", default=False)
+    parser.addoption("--simulator", action="store_true", default=False)
     parser.addoption("--time", action="store", default="10", help='routing time in minutes')
 
 
@@ -85,7 +86,8 @@ def unlock(device):
 @pytest.yield_fixture(scope='session')
 def driver(request, session):
     logging.info("[session] starting driver")
-    unlock(request.config.getoption("--device-id"))
+    if not request.config.getoption("--simulator"):
+        unlock(request.config.getoption("--device-id"))
     driver = WebDriverManager.get_instance().driver
     driver.implicitly_wait(10)
     platform = WebDriverManager.get_instance().device.platform
@@ -94,13 +96,18 @@ def driver(request, session):
         result = driver.execute_script("mobile: shell", {
             'command': "dumpsys window windows | grep -E 'mObscuringWindow|mHoldScreenWindow|mCurrentFocus' | grep -E 'mapswithme'"})
         locale = driver.execute_script("mobile: shell", {'command': "getprop persist.sys.locale"})
+        if locale == "\n":
+            locale = "en-US"
         app_package = result.split("/")[0].split(" ")[-1]
         set_settings("Android", "package", app_package)
         set_settings("Android", "locale", locale.split("-")[0])
     else:
-        locale = subprocess.run(["ideviceinfo -u {} -q com.apple.international -k Locale"
-                                .format(WebDriverManager.get_instance().device.udid)],
-                                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+        if WebDriverManager.get_instance().device.emulator:
+            locale = b'en_US'
+        else:
+            locale = subprocess.run(["ideviceinfo -u {} -q com.apple.international -k Locale"
+                                    .format(WebDriverManager.get_instance().device.udid)],
+                                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
         set_settings("Android", "locale", locale.decode().split("_")[0])
         # ideviceinstaller -U <UUID> -l | grep maps.me
 
@@ -252,7 +259,10 @@ def emulate_location_moscow(driver):
     if get_settings("System", "platform") == "Android":
         pass
     else:
-        system("idevicelocation -u {} 55.758769 37.621199".format(WebDriverManager.get_instance().device.udid))
+        if not WebDriverManager.get_instance().device.emulator:
+            system("idevicelocation -u {} 55.758769 37.621199".format(WebDriverManager.get_instance().device.udid))
+        else:
+            WebDriverManager.get_instance().driver.set_location(55.758769, 37.621199, 0)
         # driver.set_location(55.758769, 37.621199, 0)
 
 
