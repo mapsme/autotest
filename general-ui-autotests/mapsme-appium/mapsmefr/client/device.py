@@ -15,13 +15,14 @@ class Device:
 
     def __init__(self, info):
         self.id = info['id']
-        self.name = info["name"]
-        self.device_id = info['device_id']
+        self.name = info['device_id'] if pytest.config.getoption("--simulator") else info["name"]
+        self.device_id = "emulator-5554" if pytest.config.getoption("--simulator") else info['device_id']
         self.udid = info['udid']
         self.platform = info['platform_name']
         self.platform_version = info['platform_version']
         self.status = info['status']
         self._server_url = info["server_url"]
+        self.emulator = pytest.config.getoption("--simulator")
 
     @staticmethod
     def init_device(device_id):
@@ -72,19 +73,24 @@ class AndroidDevice(Device):
             # 'chromedriverExecutable': '/usr/local/lib/node_modules/appium-chromedriver/chromedriver/mac/chromedriver'
         }
 
-        chrome_ver = subprocess.run(
-            ["adb -s {} shell dumpsys package com.android.chrome | grep versionName".format(self.device_id)],
-            shell=True,
-            stdout=PIPE, stderr=PIPE)
-        res = [x.decode() for x in chrome_ver.stdout.split(b'\n') if x.strip() != b'']
-        ver = res[0].split("=")[1].rsplit(".", 2)[0]
-        platf = "linux" if platform.system() == "Linux" else "mac"
+        if self.emulator:
+            caps["avd"] = self.name
 
-        logging.info("CHROMEDRIVER VERSION: {}".format(ver))
+        if not self.emulator:
+            chrome_ver = subprocess.run(
+                ["adb -s {} shell dumpsys package com.android.chrome | grep versionName".format(self.device_id)],
+                shell=True,
+                stdout=PIPE, stderr=PIPE)
+            res = [x.decode() for x in chrome_ver.stdout.split(b'\n') if x.strip() != b'']
+            ver = res[0].split("=")[1].rsplit(".", 2)[0]
+            platf = "linux" if platform.system() == "Linux" else "mac"
 
-        chromedriver = join(pytest.config.rootdir.strpath, "chromedriver_dir", "chromedriver_{}_{}".format(ver, platf))
+            logging.info("CHROMEDRIVER VERSION: {}".format(ver))
 
-        caps['chromedriverExecutable'] = chromedriver
+            chromedriver = join(pytest.config.rootdir.strpath, "chromedriver_dir",
+                                "chromedriver_{}_{}".format(ver, platf))
+
+            caps['chromedriverExecutable'] = chromedriver
 
         if pytest.config.getoption("--booking-tests") == 'true':
             caps['chromeOptions'] = {"androidPackage": "com.android.chrome"}
@@ -100,14 +106,17 @@ class AndroidDevice(Device):
         return caps
 
     def check_active(self):
-        res = subprocess.run(["adb devices -l | awk 'NR > 1 {print $1}'"], shell=True, stdout=PIPE, stderr=PIPE)
-        active_devices = [x.decode() for x in res.stdout.split(b'\n') if x != b'']
-        requests.post("{}/refresh".format(self._server_url),
-                      data={"active_devices": json.dumps(active_devices), "platform_name": self.platform})
-        if self.device_id in active_devices:
+        if self.emulator:
             return True
         else:
-            return False
+            res = subprocess.run(["adb devices -l | awk 'NR > 1 {print $1}'"], shell=True, stdout=PIPE, stderr=PIPE)
+            active_devices = [x.decode() for x in res.stdout.split(b'\n') if x != b'']
+            requests.post("{}/refresh".format(self._server_url),
+                          data={"active_devices": json.dumps(active_devices), "platform_name": self.platform})
+            if self.device_id in active_devices:
+                return True
+            else:
+                return False
 
     def reboot(self):
         subprocess.run(["adb -s {} reboot".format(self.device_id)], shell=True, stdout=PIPE, stderr=PIPE)
@@ -155,15 +164,18 @@ class IOSDevice(Device):
         return caps
 
     def check_active(self):
-        res = subprocess.run(["idevice_id -l"], shell=True, stdout=PIPE, stderr=PIPE)
-        active_devices = [x.decode() for x in res.stdout.split(b'\n') if x != b'']
-        logging.info("udid: {}, active={}".format(self.udid, active_devices))
-        requests.post("{}/refresh".format(self._server_url),
-                      data={"active_devices": json.dumps(active_devices), "platform_name": self.platform})
-        if self.udid in active_devices:
-            return True
+        if not self.emulator:
+            res = subprocess.run(["idevice_id -l"], shell=True, stdout=PIPE, stderr=PIPE)
+            active_devices = [x.decode() for x in res.stdout.split(b'\n') if x != b'']
+            logging.info("udid: {}, active={}".format(self.udid, active_devices))
+            requests.post("{}/refresh".format(self._server_url),
+                          data={"active_devices": json.dumps(active_devices), "platform_name": self.platform})
+            if self.udid in active_devices:
+                return True
+            else:
+                return False
         else:
-            return False
+            return True
 
     def reboot(self):
         subprocess.run(["idevicediagnostics -u {} restart".format(self.udid)], shell=True, stdout=PIPE, stderr=PIPE)
