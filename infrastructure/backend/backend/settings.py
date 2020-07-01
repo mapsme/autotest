@@ -141,7 +141,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR.split("at-infrastructure")[0]
+MEDIA_ROOT = BASE_DIR.rsplit("infrastructure", 1)[0]
 
 LOGGING = {
     'version': 1,
