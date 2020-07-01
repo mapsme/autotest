@@ -32,6 +32,8 @@ class TestResult:
             params["is_standart"] = self.is_standart
         response = requests.post(self.url, data=params)
         self.id = int(response.text)
+        with open("testresult.txt", "w") as f:
+            f.write("{}".format(self.id))
         logging.info("==============================================================================================")
         logging.info("RESULT LINK:    {}#!/top/testresult?id={}".format(self.url.split("testresult")[0], self.id))
         logging.info("==============================================================================================")

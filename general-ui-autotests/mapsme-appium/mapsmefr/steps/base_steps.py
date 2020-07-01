@@ -1,9 +1,14 @@
+import base64
 import logging
 import time
+from datetime import datetime
 from functools import wraps
+from os import getenv
+from os.path import dirname, realpath, join
 from time import sleep
 
 import pytest
+import requests
 from appium.webdriver.common.touch_action import TouchAction
 from mapsmefr.pageobjects.base import BottomPanel
 from mapsmefr.steps.locators import Locator, LocalizedButtons, BookingButtons
@@ -14,6 +19,62 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+
+
+def screenshotwrap(stepname, two_screenshots=True):
+    def outer_wrapper(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # path = dirname(realpath(__file__)).split('mapsme')[0]
+            filename = 'before_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
+                                                 datetime.now().strftime("%H_%M_%S"))
+            screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
+            image_64_decode = base64.b64decode(screencap)
+            with open(filename, 'wb') as ff:
+                ff.write(image_64_decode)
+            test_r = None
+            with open("testresult.txt", "r") as f:
+                test_r = f.read()
+
+            additional = "".join([x for x in args if isinstance(x, str)])
+
+            text = stepname
+            if additional != "":
+                text = "{}: {}".format(text, additional)
+
+            params = {"test_result": test_r,
+                      "log": text,
+                      "file": screencap,
+                      "timestamp": datetime.now(),
+                      "is_fail": False,
+                      "before": True}
+            resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+            result = func(*args, **kwargs)
+            if two_screenshots:
+                sleep(2)
+                filename = 'after_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
+                                                    datetime.now().strftime("%H_%M_%S"))
+                screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
+                image_64_decode = base64.b64decode(screencap)
+                with open(filename, 'wb') as ff:
+                    ff.write(image_64_decode)
+                test_r = None
+                with open("testresult.txt", "r") as f:
+                    test_r = f.read()
+
+                params = {"test_result": test_r,
+                          "log": text,
+                          "file": screencap,
+                          "timestamp": datetime.now(),
+                          "is_fail": False,
+                          "before": False}
+                resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+            return result
+
+        return wrapper
+
+    return outer_wrapper
+
 
 def check_not_crash(func):
     @wraps(func)
@@ -165,6 +226,7 @@ class BaseSteps(CommonSteps):
     def search(self, loc, click_search_button=True):
         pass
 
+    @screenshotwrap(stepname="Нажатие на кнопку поиска")
     def click_search_button(self):
         button = self.try_get(Locator.SEARCH_BUTTON.get()) or self.try_get(Locator.SEARCH_BUTTON_ROUTING.get())
         button.click()
@@ -242,11 +304,13 @@ class BaseSteps(CommonSteps):
 class AndroidSteps(BaseSteps):
 
     @check_not_crash
+    @screenshotwrap(stepname="Выбор результата из списка")
     def choose_first_search_result(self, category=None):
         if category:
             first_result = self.try_get_by_text(category)
-            while not first_result and not is_element_scrolled(self.driver, first_result):
+            while not first_result or not is_element_scrolled(self.driver, first_result):
                 self.scroll_down(small=True)
+                first_result = self.try_get_by_text(category)
         else:
             first_result = WebDriverManager.get_instance().driver.find_element_by_id(Locator.TITLE.get())
         logging.info("Choose first search result: {}".format(first_result.text))
@@ -360,7 +424,7 @@ class AndroidSteps(BaseSteps):
         logging.info("Searching location {}".format(loc))
         if click_search_button:
             self.click_search_button()
-        self.driver.find_element_by_id(Locator.SEARCH_FIELD.get()).send_keys(loc)
+        self.send_query_to_search_field(loc)
         try:
             self.driver.hide_keyboard()
             in_progress = self.driver.find_element_by_id(Locator.SEARCH_PROGRESS.get())
@@ -368,7 +432,12 @@ class AndroidSteps(BaseSteps):
         except NoSuchElementException as nse:
             pass
 
+    @screenshotwrap(stepname="Ввод значения в поле поиска")
+    def send_query_to_search_field(self, value):
+        self.try_get(Locator.SEARCH_FIELD.get()).send_keys(value)
+
     @check_not_crash
+    @screenshotwrap(stepname="Проверка значения на PP", two_screenshots=False)
     def assert_pp(self, text):
         assert self.driver.find_element_by_id(Locator.PP.get())
         assert text in self.driver.find_element_by_id(Locator.TV_TITLE.get()).text

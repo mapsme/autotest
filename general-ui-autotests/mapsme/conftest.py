@@ -1,7 +1,11 @@
+import base64
 import json
+from datetime import datetime
+from os import walk
 from os.path import realpath, join, dirname
 from subprocess import PIPE
 
+import requests
 from mapsmefr.client.session import Session, PytestMarkers
 from mapsmefr.client.test_item import TestItem
 from mapsmefr.client.test_result import TestResult
@@ -154,9 +158,24 @@ def pytest_runtest_makereport(item, call):
         if (rep.skipped and xfail) or (rep.failed and not xfail):
             path = dirname(realpath(__file__)).split('mapsme')[0]
             filename = join(path, item.name + ".png")
-            result = get_screenshot(filename)
-            if result:
-                extra.append(pytest_html.extras.image(item.name + ".png"))
+            screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
+            image_64_decode = base64.b64decode(screencap)
+            log = "<br>".join([rep.longrepr.reprcrash.message] + rep.longrepr.reprtraceback.reprentries[0].lines)
+            with open(filename, 'wb') as ff:
+                ff.write(image_64_decode)
+            test_r = None
+            with open("testresult.txt", "r") as f:
+                test_r = f.read()
+
+            params = {"test_result": test_r,
+                      "log": "Error:<br> {}".format(log),
+                      "file": screencap,
+                      "timestamp": datetime.now(),
+                      "is_fail": True,
+                      "before": True}
+            resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+
+            extra.append(pytest_html.extras.image(item.name + ".png"))
         rep.extra = extra
 
 

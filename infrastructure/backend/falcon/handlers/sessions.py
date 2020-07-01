@@ -1,12 +1,15 @@
+import base64
 import csv
 import json
 from os.path import join, dirname, abspath
 
+from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponse
 from django.utils.encoding import smart_str
 from django.views.decorators.http import require_http_methods, require_POST, require_GET
 
-from falcon.models import TestItems, BuildSessions, TestResults, TestMarkers, MetricsStandart, MajorReleases, Versions
+from falcon.models import TestItems, BuildSessions, TestResults, TestMarkers, MetricsStandart, MajorReleases, Versions, \
+    TestResultLog
 from falcon.tools.serializers import DatetimeJSONEncoder
 
 
@@ -228,3 +231,18 @@ def csv_download(request, id=None):
         response['Content-Disposition'] = 'attachment;filename=%s' % smart_str(filename)
         response['X-Sendfile'] = smart_str(join(path_to_file, filename))
         return response
+
+
+@require_http_methods(["GET", "POST"])
+def test_log(request):
+    if request.method == 'GET':
+        testres_id = request.GET["test_result_id"]
+        logs = TestResultLog.objects.filter(test_result__id=testres_id)
+    if request.method == 'POST':
+        params = request.POST.dict()
+        testres = TestResults.objects.get(pk=params["test_result"])
+        testlog = TestResultLog(test_result=testres, log=params["log"], timestamp=params["timestamp"], is_fail=params["is_fail"], before=params["before"])
+        image_data = params["file"]
+        data = ContentFile(base64.b64decode(image_data))
+        file_name = "myphoto.png"
+        testlog.file.save(file_name, data, save=True)  # image is User's model fi

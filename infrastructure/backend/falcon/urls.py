@@ -2,6 +2,8 @@ from django.conf.urls import url
 
 from falcon.handlers import *
 from falcon.handlers import jenkins
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
 
@@ -53,4 +55,6 @@ urlpatterns = [
 
     url(r'^start/buildcheck$', jenkins.start_build_check),
     url(r'^start/refresh$', jenkins.device_refresh),
-]
+    url(r'^testlog$', sessions.test_log),
+
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -288,12 +288,24 @@ class TestResults(models.Model):
         db_table = 'test_results'
 
     def wrap(self):
+        logs = TestResultLog.objects.filter(test_result__id=self.pk).order_by("timestamp")
+        sorted_logs = []
+        for i, log in enumerate(logs):
+            if len(sorted_logs) == 0:
+                sorted_logs.append([log.wrap()])
+            else:
+                if log.log == logs[i-1].log:
+                    sorted_logs[-1].append(log.wrap())
+                else:
+                    sorted_logs.append([log.wrap()])
+
         data = {
             'id': self.pk, 'test_name': self.test_item.name,
             'session_id': self.session.pk, 'time_start': self.time_start, 'time_end': self.time_end,
             'type': self.test_item.type, "test_item_id": self.test_item.pk,
             "status": self.status if self.status else "In progress",
-            'is_memory_test': self.is_memory_test, 'is_power_test': self.is_power_test
+            'is_memory_test': self.is_memory_test, 'is_power_test': self.is_power_test,
+            "logs": sorted_logs
         }
         if self.time_start and self.time_end:
             data["time"] = round((self.time_end - self.time_start).seconds / 60)
@@ -324,4 +336,19 @@ class CompareResults(models.Model):
     def wrap(self):
         return {
             "id": self.pk, "uuid": self.uuid, "data": self.data, "type": self.type, "diff": self.diff
+        }
+
+
+class TestResultLog(models.Model):
+    id = models.AutoField(primary_key=True)
+    test_result = models.ForeignKey(TestResults, models.CASCADE, blank=True, null=True)
+    log = models.CharField(max_length=5000)
+    file = models.ImageField(blank=True, upload_to="screencaps")
+    timestamp = models.DateTimeField()
+    is_fail = models.BooleanField(default=False)
+    before = models.BooleanField(default=True)
+
+    def wrap(self):
+        return {
+            "id": self.pk, "log": self.log, "timestamp": self.timestamp, "file": self.file.url, "is_fail": self.is_fail, "before": self.before
         }

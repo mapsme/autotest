@@ -10,9 +10,9 @@ export default class TestResultView extends JetView{
 
         var title = { view:"label", label:"Test result info", css: {"font-size": "150%", "margin-left" : "50px"}}
 
-        var properties = { type:"layout", id: "info_layout", rows: [ ]}
+        var properties = { type:"layout", id: "info_layout", rows: []}
 
-       return {view: "scrollview", scroll: "y", body: {
+       return {view: "scrollview", scroll: "y", body: { id: "my_layout",
        rows: [
             {view: "button", id: "goBack", label: "Back to session", autowidth: true, type:"icon", icon:"mdi mdi-arrow-left",},
             {cols: [title]},
@@ -37,6 +37,63 @@ export default class TestResultView extends JetView{
             if (info.status == "Failed") css = "status_failed";
             if (info.status == "In progress") css = "status_inprogress";
             $$("test_status").define("css", css)
+
+
+
+            // var columns = []
+
+                //columns[0] = {header: "Screenshots", body: {view: "scrollview", scroll: "y", autoheight: true, body: {id: "accordion_scroll", rows: [ {template: "", autoheight: true}] }}, autoheight: true }
+                //if (info.status == "Failed")
+                //columns[1] = { header: "Errors", body: {view: "scrollview", scroll: "y", autoheight: true, body: {id: "accordion_scroll_errors", rows: [ {template: "", autoheight: true}] }}, autoheight: true }
+
+
+
+            var columns = []
+
+
+            function sortByKey(array, key) {
+                return array.sort(function(a, b) {
+                    var x = a[key]; var y = b[key];
+                    return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                });
+            }
+
+
+
+
+
+            for (var i=0; i < info.logs.length; i++) {
+
+            var string = '<div class="webix_scrollview" style=\"width:100%; height: auto !important; display: block;\">'
+                  if (info.logs[i][0].log.includes("Error"))
+                  string += '<p><b>' + info.logs[i][0].log + '</b></p><br/>'
+
+                  for (var j=0; j < info.logs[i].length; j++) {
+                    string += '<img src="'+info.logs[i][j].file+'" width="300" style="padding-left:30px; padding-right:25px"/>'
+
+                  }
+
+                  string += '</div>'
+
+               columns[i] = {header: info.logs[i][0].log, body: {view: "scrollview", scroll: "y", height: 600, body: {rows: [ {template: string, autoheight: true}] }}, height: 600, collapsed: true }
+               if (info.logs[i][0].log.includes("Error")) {
+                columns[i].collapsed = false
+                columns[i].header = '<div style=\"color:red\">' + info.logs[i-1][0].log + ": ERROR" + '</div>'
+               }
+            }
+
+
+
+            var accordion = {
+                view:"accordion",
+                type:"wide",
+                multi:true,
+                rows:columns
+            }
+
+            $$("my_layout").addView(accordion);
+
+
 
             if (info.type == "hardware") {
 

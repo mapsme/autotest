@@ -139,6 +139,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR.rsplit("infrastructure", 1)[0]
+
 LOGGING = {
     'version': 1,
     'filters': {
