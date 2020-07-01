@@ -12,6 +12,8 @@ node("falcon") {
       if (new Boolean(beta)) {
          sh """sed -i 's/demo/beta/g' ./infrastructure/backend/settings.ini
          sed -i 's#/static/#/beta/static/#g' ./infrastructure/backend/backend/settings.py
+         sed -i 's#media#beta/media#g' ./infrastructure/backend/backend/settings.py
+         
          """
          def expr = '\"\"/\"=/beta\"'
          sh "sed -i 's=\"\"=\"/beta\"=g' ./infrastructure/front/sources/models/beta.js"
@@ -33,13 +35,31 @@ node("falcon") {
      
       if (new Boolean(migrations)) {
          dir('infrastructure/backend') {
-          sh "python3 manage.py migrate"
+         sh """#!/bin/bash
+               set +x
+
+               python3 -m venv ./autotest
+               source ./autotest/bin/activate
+               pip3 install -r requirements.txt
+               python3 manage.py migrate
+                               
+
+              """
          }
       }
      
       dir('infrastructure/backend') {
           withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
-              sh "nohup python3 manage.py runserver localhost:${port} > /dev/null &"
+            sh """#!/bin/bash
+               set +x
+               python3 -m venv ./autotest
+               source ./autotest/bin/activate
+               pip3 install -r requirements.txt
+               nohup python3 manage.py runserver localhost:${port} > /dev/null &
+                               
+
+              """
+              
           }
       }
     }
