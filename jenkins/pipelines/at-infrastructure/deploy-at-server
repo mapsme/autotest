@@ -15,13 +15,30 @@ node("falcon") {
       
       if (new Boolean(migrations)) {
          dir('infrastructure/backend') {
-          sh "python3 manage.py migrate"
+          sh """#!/bin/bash
+               set +x
+
+               python3 -m venv ./autotest
+               source ./autotest/bin/activate
+               pip3 install -r requirements.txt
+               python3 manage.py migrate
+                               
+
+              """
          }
       }
      
       dir('infrastructure/backend') {
           withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
-              sh "nohup python3 manage.py runserver localhost:${port} > /dev/null &"
+              sh """#!/bin/bash
+               set +x
+               python3 -m venv ./autotest
+               source ./autotest/bin/activate
+               pip3 install -r requirements.txt
+               nohup python3 manage.py runserver localhost:${port} > /dev/null &
+                               
+
+              """
           }
       }
     }
