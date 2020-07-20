@@ -42,4 +42,6 @@ class TestResult:
         self.time_end = datetime.now()
         params = {"time_end": self.time_end,
                   "status": status}
+        with open("testresult.txt", "w") as f:
+            f.write("0")
         requests.post("{}/{}".format(self.url, self.id), data=params)

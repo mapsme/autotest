@@ -50,16 +50,16 @@ class TestRoutingMapsme:
         steps.search("метро Сокол")
         steps.choose_first_search_result()
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("Сергиев-Посад")
         steps.choose_first_search_result()
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         r_steps.download_additional_maps()
         r_steps.wait_route_start()
@@ -79,16 +79,16 @@ class TestRoutingMapsme:
         steps.search("метро Сокол")
         steps.choose_first_search_result()
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("Сергиев-Посад")
         steps.choose_first_search_result()
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         r_steps.download_additional_maps()
 
@@ -110,18 +110,18 @@ class TestRoutingMapsme:
         steps.search("метро Сокол")
         steps.choose_first_search_result()
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
         r_steps.wait_route_start()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
         r_steps.wait_route_start()
 
         steps.search("Сергиев-Посад")
         steps.choose_first_search_result()
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         r_steps.download_additional_maps()
         r_steps.wait_route_start()
@@ -230,16 +230,19 @@ class TestRoutingMapsme:
         steps.search("метро Алексеевская", click_search_button=False)
         points.append(search_steps.get_first_search_name())
         steps.choose_first_search_result()
+        sleep(1)
 
         steps.search("метро Сокол")
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
-        panel.add_stop().click()
+        r_steps.click_add_stop()
+
+        sleep(1)
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         r_steps.wait_route_start()
 
@@ -276,13 +279,13 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.try_get(Locator.ROUTING_BIKE.get()).click()
 
@@ -321,7 +324,7 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         sleep(1)
 
@@ -332,7 +335,7 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.try_get(Locator.ROUTING_WALK.get()).click()
 
@@ -377,13 +380,13 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("метро Строгино")
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.try_get(Locator.ROUTING_METRO.get()).click()
 
@@ -428,13 +431,13 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.search("метро Строгино")
         steps.choose_first_search_result()
         points.append(steps.pp_get_title())
 
-        panel.add_stop().click()
+        r_steps.click_add_stop()
 
         steps.try_get(LocalizedButtons.MANAGE_ROUTE.get()).click()
 

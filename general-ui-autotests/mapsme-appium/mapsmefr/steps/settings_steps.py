@@ -1,7 +1,7 @@
 import logging
 from time import sleep
 
-from mapsmefr.steps.base_steps import CommonSteps, check_not_crash
+from mapsmefr.steps.base_steps import CommonSteps, check_not_crash, screenshotwrap
 from mapsmefr.steps.locators import Locator, LocalizedButtons, LocalizedSettings
 from mapsmefr.utils.driver import WebDriverManager
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
@@ -41,13 +41,16 @@ class SettingsSteps(CommonSteps):
 
 
 class AndroidSettingsSteps(SettingsSteps):
+
     @check_not_crash
+    @screenshotwrap("Открыть настройки")
     def open_settings(self):
         self._wait_in_progress()
         self.driver.find_element_by_id(Locator.MENU_BUTTON.get()).click()
         self.driver.find_element_by_id(Locator.SETTINGS.get()).click()
 
     @check_not_crash
+    @screenshotwrap("Переключить настройку")
     def switch_settings(self, name, value: bool):
         switch = self.try_get_by_xpath(
             "//*[@text='{}']/ancestor::*[@class='android.widget.LinearLayout'][1]//*[@resource-id='{}']".format(name,
@@ -65,6 +68,7 @@ class AndroidSettingsSteps(SettingsSteps):
             switch.click()
         logging.info("Switch settings {} to state {}".format(name, value))
 
+    @screenshotwrap("Переключить настройку")
     def choose_radio_settings(self, name, value):
         setting = self.try_get_by_text(name)
 
@@ -116,12 +120,14 @@ class AndroidSettingsSteps(SettingsSteps):
 
 class IosSettingsSteps(SettingsSteps):
 
+    @screenshotwrap("Открыть настройки")
     def open_settings(self):
         self.driver.find_element_by_id(Locator.MENU_BUTTON.get()).click()
         sleep(1)
         self.driver.find_element_by_id(LocalizedButtons.SETTINGS.get()).click()
 
     @check_not_crash
+    @screenshotwrap("Переключить настройку")
     def switch_settings(self, name, value: bool):
         switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name))
         while not switch:
@@ -136,6 +142,7 @@ class IosSettingsSteps(SettingsSteps):
         logging.info("Switch settings {} to state {}".format(name, value))
 
     @check_not_crash
+    @screenshotwrap("Переключить настройку")
     def choose_radio_settings(self, name, value):
         setting = self.try_get_by_xpath("//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]".format(name))
 

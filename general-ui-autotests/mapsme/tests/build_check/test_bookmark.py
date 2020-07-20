@@ -27,22 +27,17 @@ class TestBookmarkMapsme:
 
     @pytest.mark.name("[Bookmarks] Создание букмарки на здании")
     def test_bookmark_add(self, main, download_moscow_map, steps, bookmark_steps):
-        panel = BottomPanel()
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), "проспект Мира, 78")
-
         steps.search("Проспект Мира 78")
         steps.choose_first_search_result()
-        panel.bookmark().click()
+        bookmark_steps.click_bookmark()
         steps.scroll_down()
         steps.assert_element_presence(Locator.EDIT_BOOKMARK_BUTTON)
-
         steps.try_get(Locator.EDIT_BOOKMARK_BUTTON.get()).click()
         sleep(1)
         group = bookmark_steps.get_bookmark_group_name()
         steps.press_back_until_main_page()
-
-        panel.bookmarks().click()
-
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(group)
         assert bookmark_steps.try_find_bookmark_with_scroll("проспект Мира, 78")
 
@@ -53,7 +48,7 @@ class TestBookmarkMapsme:
         bookmark_name = "проспект Мира, 78"
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), bookmark_name)
         bookmark_steps.create_bookmark(bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         new_group = get_random_string(10)
         new_name = get_random_string(10)
         new_description = get_random_string(20)
@@ -67,14 +62,14 @@ class TestBookmarkMapsme:
         steps.try_get_by_text(LocalizedButtons.SAVE.get()).click()
 
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
 
-        assert bookmark_steps.try_find_bookmark_with_scroll(bookmark_name) is None
-        assert bookmark_steps.try_find_bookmark_with_scroll(new_name) is None
+        bookmark_steps.assert_no_bookmark(bookmark_name)
+        bookmark_steps.assert_no_bookmark(new_name)
 
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(new_group)
         b = bookmark_steps.try_find_bookmark_with_scroll(new_name)
         sleep(1)
@@ -89,16 +84,16 @@ class TestBookmarkMapsme:
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), "проспект Мира, 78")
         bookmark_name = "проспект Мира, 78"
         bookmark_steps.create_bookmark(bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
         bookmark = bookmark_steps.try_find_bookmark_with_scroll(bookmark_name)
         sleep(1)
         bookmark.click()
         BottomPanel().bookmark().click()
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
-        assert bookmark_steps.try_find_bookmark_with_scroll(bookmark_name) is None
+        bookmark_steps.assert_no_bookmark(bookmark_name)
 
     @pytest.mark.name("[Bookmarks] Удаление букмарки через список")
     def test_delete_bookmark_from_list(self, main, download_moscow_map, steps, bookmark_steps):
@@ -109,16 +104,16 @@ class TestBookmarkMapsme:
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), bookmark_name)
 
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
-        assert bookmark_steps.try_find_bookmark_with_scroll(bookmark_name) is None
+        bookmark_steps.assert_no_bookmark(bookmark_name)
 
     @pytest.mark.name("[Bookmarks] Создание группы на экране букмарок")
     def test_create_new_group(self, main, download_moscow_map, steps, bookmark_steps):
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmark_steps.click_bookmark_group(group_name)
 
@@ -127,7 +122,7 @@ class TestBookmarkMapsme:
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmark_steps.click_edit_group(group_name)
         new_name = get_random_string(10)
@@ -150,12 +145,12 @@ class TestBookmarkMapsme:
         first_group_name = get_random_string(10)
         second_group_name = get_random_string(10)
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(first_group_name)
         bookmark_steps.create_group(second_group_name)
         bookmark_steps.delete_all_groups()
         steps.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         assert steps.try_get_by_text(first_group_name) is None
         assert steps.try_get_by_text(second_group_name) is None
         bookmark_steps.click_more_group(LocalizedButtons.MY_BOOKMARKS.get())
@@ -177,12 +172,12 @@ class TestBookmarkMapsme:
         bookmark_steps.delete_all_groups()
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), "проспект Мира, 78")
         group_name = get_random_string(10)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmarks = ["проспект Мира, 78", "метро Динамо", "Якитория", "Белорусская"]
         for b in bookmarks:
             bookmark_steps.create_bookmark(b)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(group_name)
         sleep(1)
         bookmark_steps.click_edit_bookmark(bookmarks[0])
@@ -190,13 +185,13 @@ class TestBookmarkMapsme:
         steps.try_get_by_text(LocalizedButtons.SAVE.get()).click()
         steps.press_back_until_main_page()
 
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         button = steps.try_get(Locator.BACKUP_BUTTON.get()) or steps.try_get(LocalizedButtons.ENABLE_BACKUP.get())
         button.click()
         system_steps.restart_app()
 
         steps.close_first_time_frame()
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         assert steps.try_get_by_text(LocalizedButtons.LAST_BACKUP.get().format(datetime.now().strftime("%d.%m.%Y")),
                                      strict=False) or \
                steps.try_get_by_text(LocalizedButtons.LAST_BACKUP.get().format(datetime.now().strftime("%d/%m/%y")),
@@ -211,7 +206,7 @@ class TestBookmarkMapsme:
 
         bookmark_steps.delete_all_groups()
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), "проспект Мира, 78")
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         sleep(1)
 
         steps.try_get(Locator.RESTORE_BUTTON.get()).click()
@@ -232,7 +227,7 @@ class TestBookmarkMapsme:
         bookmark_name = "проспект Мира, 78"
         new_name = get_random_string(10)
         bookmark_steps.create_bookmark(bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
         bookmark_steps.click_edit_bookmark(bookmark_name)
         bookmark_steps.change_bookmark_name(new_name)
@@ -259,12 +254,12 @@ class TestBookmarkMapsme:
     def test_share_group(self, main, download_moscow_map, steps, bookmark_steps, system_steps):
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmarks = ["метро Динамо", "Якитория", "Белорусская"]
         for b in bookmarks:
             bookmark_steps.create_bookmark(b)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.share_group(group_name)
         loc = steps.driver.get_window_size()
         try:
@@ -275,5 +270,5 @@ class TestBookmarkMapsme:
 
         system_steps.start_mail_app()
         bookmark_steps.import_group_from_mail(group_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         assert "3" in bookmark_steps.get_group_size(group_name)

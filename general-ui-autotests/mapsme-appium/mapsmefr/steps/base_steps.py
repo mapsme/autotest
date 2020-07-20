@@ -21,54 +21,66 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 
-def screenshotwrap(stepname, two_screenshots=True):
+def screenshotwrap(stepname, two_screenshots=True, log_result=False):
     def outer_wrapper(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
+            if two_screenshots:
             # path = dirname(realpath(__file__)).split('mapsme')[0]
             filename = 'before_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
                                                  datetime.now().strftime("%H_%M_%S"))
             screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
-            image_64_decode = base64.b64decode(screencap)
-            with open(filename, 'wb') as ff:
-                ff.write(image_64_decode)
+            # image_64_decode = base64.b64decode(screencap)
+            # with open(filename, 'wb') as ff:
+            #    ff.write(image_64_decode)
             test_r = None
-            with open("testresult.txt", "r") as f:
-                test_r = f.read()
-
-            additional = "".join([x for x in args if isinstance(x, str)])
-
-            text = stepname
-            if additional != "":
-                text = "{}: {}".format(text, additional)
-
-            params = {"test_result": test_r,
-                      "log": text,
-                      "file": screencap,
-                      "timestamp": datetime.now(),
-                      "is_fail": False,
-                      "before": True}
-            resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
-            result = func(*args, **kwargs)
-            if two_screenshots:
-                sleep(2)
-                filename = 'after_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
-                                                    datetime.now().strftime("%H_%M_%S"))
-                screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
-                image_64_decode = base64.b64decode(screencap)
-                with open(filename, 'wb') as ff:
-                    ff.write(image_64_decode)
-                test_r = None
+            try:
                 with open("testresult.txt", "r") as f:
                     test_r = f.read()
+                if test_r and test_r != "0":
+                    additional = "".join([x for x in args if isinstance(x, str)])
 
-                params = {"test_result": test_r,
-                          "log": text,
-                          "file": screencap,
-                          "timestamp": datetime.now(),
-                          "is_fail": False,
-                          "before": False}
-                resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+                    text = stepname
+                    if additional != "":
+                        text = "{}: {}".format(text, additional)
+
+                    params = {"test_result": test_r,
+                              "log": text,
+                              "file": screencap,
+                              "timestamp": datetime.now(),
+                              "is_fail": False,
+                              "before": True}
+                    resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+            except FileNotFoundError:
+                pass
+
+            result = func(*args, **kwargs)
+            sleep(2)
+            filename = 'after_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
+                                                datetime.now().strftime("%H_%M_%S"))
+            screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
+            # image_64_decode = base64.b64decode(screencap)
+            # with open(filename, 'wb') as ff:
+            #    ff.write(image_64_decode)
+            test_r = None
+            try:
+                with open("testresult.txt", "r") as f:
+                    test_r = f.read()
+                if test_r and test_r != "0":
+                    additional = "".join([x for x in args if isinstance(x, str)])
+                    text = stepname
+                    if additional != "":
+                        text = "{}: {}".format(text, additional)
+
+                    params = {"test_result": test_r,
+                              "log": text,
+                              "file": screencap,
+                              "timestamp": datetime.now(),
+                              "is_fail": False,
+                              "before": False}
+                    resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+            except FileNotFoundError:
+                pass
             return result
 
         return wrapper
@@ -323,6 +335,7 @@ class AndroidSteps(BaseSteps):
         except NoSuchElementException as nse:
             pass
 
+    @screenshotwrap("Выбрать категорию в поиске")
     def choose_category_in_list(self, category_name):
         cat = self.try_get_by_text(text=category_name)
         old_page_elements = [x.text for x in
@@ -533,6 +546,7 @@ class AndroidSteps(BaseSteps):
         self.try_get_by_text(LocalizedButtons.OK.get()).click()
 
     @check_not_crash
+    @screenshotwrap("Выйти из режима навигации")
     def stop_routing(self):
         self.try_get(Locator.TOGGLE.get()).click()
         self.try_get(Locator.STOP.get()).click()
@@ -597,16 +611,19 @@ class AndroidSteps(BaseSteps):
 class IosSteps(BaseSteps):
 
     @check_not_crash
+    @screenshotwrap(stepname="Выбор результата из списка")
     def choose_first_search_result(self, category=None):
         if category:
             first_result = self.try_get_by_xpath("//*[@name='searchType' and @value='{}']".format(category))
             while not is_element_scrolled(self.driver, first_result):
                 self.scroll_down(small=True)
+                first_result = self.try_get_by_xpath("//*[@name='searchType' and @value='{}']".format(category))
         else:
             first_result = WebDriverManager.get_instance().driver.find_element_by_id(Locator.TITLE.get())
         logging.info("Choose first search result: {}".format(first_result.text))
         first_result.click()
 
+    @screenshotwrap("Выбрать категорию в поиске")
     def choose_category_in_list(self, category_name):
         cat = self.try_get(category_name)
         old_page_elements = [x.text for x in
@@ -658,7 +675,11 @@ class IosSteps(BaseSteps):
                     self.driver.execute_script('mobile: alert', alert_params)
                     logging.info("Alert accepted")
                 except:
-                    pass
+                    alert_buttons = self.driver.execute_script('mobile: alert', {'action': 'getButtons'})
+                    alert_params = {'action': 'accept'}
+                    alert = [x for x in alert_buttons if
+                             "всегда" in x or "Always" in x or "App" in x or "использовании" in x]
+                    self.try_get(alert[0]).click()
 
                 sleep(5)
                 self.try_get(Locator.IOS_NEXT_BUTTON.get()).click()
@@ -752,7 +773,12 @@ class IosSteps(BaseSteps):
         logging.info("Searching location {}".format(loc))
         if click_search_button:
             self.click_search_button()
-        self.driver.find_element_by_id(Locator.SEARCH_FIELD.get()).send_keys(loc)
+            sleep(1)
+            button = self.try_get(Locator.SEARCH_BUTTON.get()) or self.try_get(Locator.SEARCH_BUTTON_ROUTING.get())
+            if button:
+                sleep(1)
+                button.click()
+        self.send_query_to_search_field(loc)
         button = self.try_get_by_xpath("//*[@label='{}' or @label='{}']".format(LocalizedButtons.SEARCH.get(),
                                                                                 LocalizedButtons.SEARCH.get().lower()))
         while not button:
@@ -764,7 +790,12 @@ class IosSteps(BaseSteps):
         except TimeoutException as te:
             pass
 
+    @screenshotwrap(stepname="Ввод значения в поле поиска")
+    def send_query_to_search_field(self, value):
+        self.try_get(Locator.SEARCH_FIELD.get()).send_keys(value)
+
     @check_not_crash
+    @screenshotwrap(stepname="Проверка значения на PP", two_screenshots=False)
     def assert_pp(self, text):
         assert self.driver.find_element_by_id(text)
 
@@ -920,6 +951,7 @@ class IosSteps(BaseSteps):
     def find_and_click_send(self):
         self.try_get(Locator.SEND.get()).click()
 
+    @screenshotwrap("Выйти из режима навигации")
     def stop_routing(self):
         while True:
             try:
@@ -992,6 +1024,7 @@ class IosSteps(BaseSteps):
             self.driver.find_element_by_id("breadcrumb").click()
         self.driver.implicitly_wait(10)
 
+    @screenshotwrap("Подождать загрузку карты")
     def wait_map_download(self, map_name):
         button_download = self.try_get(Locator.DOWNLOAD_MAP_BUTTON.get())
         assert button_download
@@ -999,11 +1032,13 @@ class IosSteps(BaseSteps):
 
         WebDriverWait(self.driver, 120).until(EC2.element_to_be_dissapeared((By.ID, map_name)))
 
+    @screenshotwrap("Подождать автозагрузку карты")
     def wait_map_auto_download(self, map_name):
         in_progress = self.try_get(map_name)
         if in_progress:
             WebDriverWait(self.driver, 60).until(EC2.element_to_be_dissapeared((By.ID, map_name)))
 
+    @screenshotwrap("Скачать карту с PP")
     def download_map_from_pp(self):
         download = BottomPanel().download()
         download.click()
@@ -1030,8 +1065,10 @@ class IosSteps(BaseSteps):
         assert city is None
 
     def pp_get_title(self):
-        el = self.try_get_by_xpath("//*[@type='XCUIElementTypeScrollView']//*[@type='XCUIElementTypeStaticText']") or \
-             self.try_get_by_xpath("//*[@type='XCUIElementTypeTable']//*[@type='XCUIElementTypeStaticText']")
+        el = self.try_get_by_xpath(
+            "//*[@type='XCUIElementTypeScrollView']//*[@type='XCUIElementTypeStaticText' and @value != '']") or \
+             self.try_get_by_xpath(
+                 "//*[@type='XCUIElementTypeTable']//*[@type='XCUIElementTypeStaticText' and @value != '']")
         return el.text
 
 

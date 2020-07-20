@@ -3,7 +3,7 @@ from time import time, sleep
 
 from appium.webdriver.common.touch_action import TouchAction
 from mapsmefr.pageobjects.base import BottomPanel
-from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, check_not_crash, BaseSteps
+from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, check_not_crash, BaseSteps, screenshotwrap
 from mapsmefr.steps.locators import Locator, LocalizedButtons, LocalizedSettings
 from mapsmefr.utils.driver import WebDriverManager
 from mapsmefr.utils.tools import get_settings
@@ -26,15 +26,34 @@ class BookmarkSteps(BaseSteps):
         self.press_back_until_main_page()
         self.search(address)
         self.choose_first_search_result()
-        BottomPanel().bookmark().click()
+        self.click_bookmark()
         self.press_back_until_main_page()
+
+    @screenshotwrap("Нажать на значок метки")
+    def click_bookmark(self):
+        BottomPanel().bookmark().click()
+
+    @screenshotwrap("Перейти в метки")
+    def click_bookmarks(self):
+        BottomPanel().bookmarks().click()
+
+    @screenshotwrap("Проверить наличие букмарки")
+    def assert_bookmark(self, bookmark_name):
+        assert self.try_find_bookmark_with_scroll(bookmark_name)
+
+    @screenshotwrap("Проверить отсутствие букмарки")
+    def assert_no_bookmark(self, bookmark_name):
+        assert self.try_find_bookmark_with_scroll(bookmark_name) is None
+
+    def try_find_bookmark_with_scroll(self, bookmark_name):
+        pass
 
 
 class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
 
     def athorize(self):
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         backup_button = self.try_get(Locator.BACKUP_BUTTON.get())
         if backup_button:
             backup_button.click()
@@ -56,18 +75,22 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
     def delete_bookmark(self, group_name, bookmark_name):
         self._wait_in_progress()
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         self.click_bookmark_group(group_name)
-        bookmark = self.try_find_bookmark_with_scroll(bookmark_name)
+        self.click_delete_bookmark(bookmark_name)
+        self.press_back_until_main_page()
+
+    @screenshotwrap("Удалить метку")
+    def click_delete_bookmark(self, name):
+        bookmark = self.try_find_bookmark_with_scroll(name)
         if bookmark:
             TouchAction(self.driver).long_press(bookmark).perform()
             self.try_get_by_text(text=LocalizedButtons.DELETE.get()).click()
-        self.press_back_until_main_page()
 
     def delele_all_bookmarks_in_group(self, group_name):
         self._wait_in_progress()
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         self.click_bookmark_group(group_name)
 
         bookmarks = self.driver.find_elements_by_id(Locator.BOOKMARK_NAME.get())
@@ -80,6 +103,7 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
         self.press_back_until_main_page()
 
     @check_not_crash
+    @screenshotwrap("Выбрать группу меток в списке")
     def click_bookmark_group(self, group_name):
         self.try_get_by_xpath("//*[@text='{}']".format(group_name)).click()
 
@@ -110,6 +134,7 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
         edit = self.try_get(Locator.EDIT_BOOKMARK_BUTTON.get())
         return True if edit else False
 
+    @screenshotwrap("Создать новую группу меток")
     def create_group(self, name):
         self.try_get_by_text(LocalizedButtons.ADD_BOOKMARK_GROUP.get()).click()
         self.try_get(Locator.CREATE_NEW_LIST_INPUT.get()).click()
@@ -119,7 +144,7 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
 
     def delete_all_groups(self):
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         groups = self.driver.find_elements_by_xpath(
             "//*[@class='android.widget.RelativeLayout' and not(./*[@text='{}'])]/*[@resource-id='{}']"
                 .format(LocalizedButtons.MY_BOOKMARKS.get(), "{}:id/more".format(get_settings("Android", "package"))))
@@ -133,6 +158,7 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
 
         self.press_back_until_main_page()
 
+    @screenshotwrap("Нажать редактировать метку")
     def click_edit_bookmark(self, name):
         self.click_more_bookmark(name)
         self.try_get_by_text(LocalizedButtons.EDIT.get()).click()
@@ -143,39 +169,47 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
         self.try_get_by_xpath("//*[@class='android.widget.RelativeLayout' and .//*[@text='{}']]/*[@resource-id='{}']"
                               .format(name, "{}:id/more".format(get_settings("Android", "package")))).click()
 
+    @screenshotwrap("Изменить название метки")
     def change_bookmark_name(self, new_name):
         self.try_get(Locator.EDIT_BOOKMARK_NAME.get()).click()
         self.try_get(Locator.EDIT_BOOKMARK_NAME.get()).clear()
         self.try_get(Locator.EDIT_BOOKMARK_NAME.get()).send_keys(new_name)
 
+    @screenshotwrap("Изменить группу метки")
     def change_bookmark_group(self, group_name):
         self.try_get(Locator.BOOKMARK_SET.get()).click()
         self.try_get_by_text(group_name).click()
 
+    @screenshotwrap("Изменить описание метки")
     def change_bookmark_description(self, text):
         self.try_get(Locator.EDIT_BOOKMARK_DESCRIPTION.get()).click()
         self.try_get(Locator.EDIT_BOOKMARK_DESCRIPTION.get()).clear()
         self.try_get(Locator.EDIT_BOOKMARK_DESCRIPTION.get()).send_keys(text)
 
+    @screenshotwrap("Изменить цвет метки")
     def change_bookmark_color(self):
         self.try_get("iv__bookmark_color").click()
         assert self.try_get_by_text(LocalizedButtons.BOOKMARK_COLOR.get())
         self.driver.find_elements_by_id("iv__color")[3].click()
 
+    @screenshotwrap("Изменить название группы меток")
     def change_group_name(self, new_name):
         self.try_get(Locator.EDIT_BOOKMARK_GROUP_NAME.get()).click()
         self.try_get(Locator.EDIT_BOOKMARK_GROUP_NAME.get()).clear()
         self.try_get(Locator.EDIT_BOOKMARK_GROUP_NAME.get()).send_keys(new_name)
 
+    @screenshotwrap("Изменить описание группы меток")
     def change_group_description(self, text):
         self.try_get(Locator.EDIT_BOOKMARK_GROUP_DESCRIPTION.get()).click()
         self.try_get(Locator.EDIT_BOOKMARK_GROUP_DESCRIPTION.get()).clear()
         self.try_get(Locator.EDIT_BOOKMARK_GROUP_DESCRIPTION.get()).send_keys(text)
 
+    @screenshotwrap("Нажать редактировать группу меток")
     def click_edit_group(self, name):
         self.click_more_group(name)
         self.try_get_by_text(LocalizedButtons.EDIT_BOOKMARK_GROUP.get()).click()
 
+    @screenshotwrap("Нажать Больше у группы меток")
     def click_more_group(self, name):
         self.driver.find_element_by_xpath(
             "//*[@class='android.widget.RelativeLayout' and ./*[@text='{}']]/*[@resource-id='{}']"
@@ -237,7 +271,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
 
     def athorize(self):
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         backup_button = self.try_get(LocalizedButtons.SIGN_IN.get())
         if backup_button:
             backup_button.click()
@@ -256,18 +290,26 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
     @check_not_crash
     def delete_bookmark(self, group_name, bookmark_name):
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         self.click_bookmark_group(group_name)
-        bookmark = self.try_find_bookmark_with_scroll(bookmark_name)
-        if bookmark:
-            sleep(1)
-            bookmark.click()
-            BottomPanel().bookmark().click()
+        self.click_delete_bookmark(bookmark_name)
         self.press_back_until_main_page()
+
+    @screenshotwrap("Удалить метку")
+    def click_delete_bookmark(self, name):
+        bookmark = self.try_find_bookmark_with_scroll(name)
+        if bookmark:
+            self.try_get(LocalizedButtons.EDIT.get()).click()
+            sleep(1)
+            self.try_get_by_xpath(
+                "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@type='XCUIElementTypeButton']".format(
+                    name)).click()
+            sleep(1)
+            self.try_get(LocalizedButtons.DELETE.get()).click()
 
     def delele_all_bookmarks_in_group(self, group_name):
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         self.click_bookmark_group(group_name)
 
         if self.try_get(LocalizedButtons.EDIT.get()):
@@ -278,6 +320,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
             self.try_get_by_text(LocalizedButtons.DELETE.get()).click()
 
     @check_not_crash
+    @screenshotwrap("Выбрать группу меток в списке")
     def click_bookmark_group(self, group_name):
         self.try_get(group_name).click()
 
@@ -306,7 +349,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
 
     def delete_all_groups(self):
         self.press_back_until_main_page()
-        BottomPanel().bookmarks().click()
+        self.click_bookmarks()
         groups = self.driver.find_elements_by_xpath(
             "//*[@type='XCUIElementTypeCell' and not(./*[@type='XCUIElementTypeStaticText' and @name='{}'])]/*[@name='{}']"
                 .format(LocalizedButtons.MY_BOOKMARKS.get(), Locator.MORE_BUTTON.get()))
@@ -318,6 +361,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
                     .format(LocalizedButtons.MY_BOOKMARKS.get(), Locator.MORE_BUTTON.get()))
         self.press_back_until_main_page()
 
+    @screenshotwrap("Создать новую группу меток")
     def create_group(self, name):
         sleep(1)
         self.try_get_by_text(LocalizedButtons.ADD_BOOKMARK_GROUP.get()).click()
@@ -326,6 +370,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").send_keys(name)
         self.try_get_by_text(LocalizedButtons.CREATE.get()).click()
 
+    @screenshotwrap("Нажать редактировать метку")
     def click_edit_bookmark(self, name):
         sleep(1)
         self.try_find_bookmark_with_scroll(name).click()
@@ -334,41 +379,49 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
         self.try_get(Locator.EDIT_BOOKMARK_BUTTON.get()).click()
         sleep(1)
 
+    @screenshotwrap("Изменить название метки")
     def change_bookmark_name(self, new_name):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").click()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").clear()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").send_keys(new_name)
 
+    @screenshotwrap("Изменить группу метки")
     def change_bookmark_group(self, group_name):
         self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']/*[@type='XCUIElementTypeStaticText']")[
             1].click()
         self.try_get_by_text(group_name).click()
 
+    @screenshotwrap("Изменить описание метки")
     def change_bookmark_description(self, text):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").click()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").clear()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").send_keys(text)
 
+    @screenshotwrap("Изменить цвет метки")
     def change_bookmark_color(self):
         self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeCell']/*[@type='XCUIElementTypeStaticText']")[
             0].click()
         sleep(1)
         self.try_get_by_text(LocalizedButtons.BLUE.get()).click()
 
+    @screenshotwrap("Нажать Больше у группы меток")
     def click_more_group(self, name):
         self.driver.find_element_by_xpath(
             "//*[@type='XCUIElementTypeCell' and ./*[@type='XCUIElementTypeStaticText' and @name='{}']]/*[@name='{}']"
                 .format(name, Locator.MORE_BUTTON.get())).click()
 
+    @screenshotwrap("Нажать редактировать группу меток")
     def click_edit_group(self, name):
         self.click_more_group(name)
         self.try_get_by_text(LocalizedButtons.EDIT_BOOKMARK_GROUP.get()).click()
 
+    @screenshotwrap("Изменить название группы меток")
     def change_group_name(self, new_name):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").click()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").clear()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextField']").send_keys(new_name)
 
+    @screenshotwrap("Изменить описание группы меток")
     def change_group_description(self, text):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").click()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").clear()

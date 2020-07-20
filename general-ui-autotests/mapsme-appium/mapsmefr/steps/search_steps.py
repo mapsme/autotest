@@ -1,4 +1,4 @@
-from mapsmefr.steps.base_steps import AndroidSteps, IosSteps
+from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, screenshotwrap
 from mapsmefr.steps.locators import LocalizedCategories, Locator
 from mapsmefr.utils.driver import WebDriverManager
 
@@ -15,15 +15,10 @@ class SearchSteps:
         else:
             return IosSearchSteps()
 
-    def assert_popular_sights_list(self):
-        pass
-
-    def get_first_search_name(self):
-        pass
-
 
 class AndroidSearchSteps(SearchSteps, AndroidSteps):
 
+    @screenshotwrap("Проверить, что в списке отображаются популярные достопримечательности", two_screenshots=False)
     def assert_popular_sights_list(self):
         sights = [LocalizedCategories.ATTRACTION.get(), LocalizedCategories.MUSEUM.get(),
                   LocalizedCategories.PARK.get(), LocalizedCategories.CHURCH.get(),
@@ -41,6 +36,7 @@ class AndroidSearchSteps(SearchSteps, AndroidSteps):
 
 class IosSearchSteps(SearchSteps, IosSteps):
 
+    @screenshotwrap("Проверить, что в списке отображаются популярные достопримечательности", two_screenshots=False)
     def assert_popular_sights_list(self):
         sights = [LocalizedCategories.ATTRACTION.get(), LocalizedCategories.MUSEUM.get(),
                   LocalizedCategories.PARK.get(), LocalizedCategories.CHURCH.get(),

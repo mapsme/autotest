@@ -1,7 +1,7 @@
 import string
 
 from mapsmefr.pageobjects.base import BottomPanel
-from mapsmefr.steps.base_steps import AndroidSteps, IosSteps
+from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, screenshotwrap
 from mapsmefr.steps.locators import LocalizedButtons, Locator
 from mapsmefr.utils import expected_conditions as EC2
 from mapsmefr.utils.driver import WebDriverManager
@@ -22,32 +22,13 @@ class RoutingSteps:
         else:
             return IosRoutingSteps()
 
-    def assert_route_points(self, count, p2p=True, *points):
-        pass
-
-    def wait_taxi_panel(self):
-        pass
-
-    def wait_metro_panel(self):
-        pass
-
-    def download_additional_maps(self):
-        pass
-
-    def wait_route_start(self):
-        pass
-
-    def wait_route_too_long(self):
-        pass
-
-    def assert_taxi_install_button(self):
-        pass
-
-    def assert_route_type(self, route_type):
-        pass
+    @screenshotwrap("Добавить пункт в маршрут")
+    def click_add_stop(self):
+        BottomPanel().add_stop().click()
 
 
 class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
+    @screenshotwrap("Проверить количество точек в маршруте")
     def assert_route_points(self, count, p2p=True, *points):
         panel = BottomPanel()
         for point in [x for x in points if x is not None]:
@@ -57,19 +38,23 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
             el = self.driver.find_element_by_id(Locator.PP_ANCHOR.get())
             self.scroll_up(from_el=el)
 
+    @screenshotwrap("Проверить, что построился маршрут такси", two_screenshots=False)
     def wait_taxi_panel(self):
         WebDriverWait(self.driver, 180).until(EC2.presence_one_of_elements_located(
             (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_NOT_FOUND.get())),
             (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_NOT_AVAILABLE.get())),
             (By.ID, Locator.TAXI_VEZET.get())))
 
+    @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
     def wait_metro_panel(self):
         WebDriverWait(self.driver, 180).until(
             EC.presence_of_element_located((By.ID, Locator.ROUTE_METRO.get())))
 
+    @screenshotwrap("Проверить, что присутствует кнопка такси", two_screenshots=False)
     def assert_taxi_install_button(self):
         assert self.try_get_by_text(LocalizedButtons.INSTALL_BUTTON.get())
 
+    @screenshotwrap("Дождаться загрузки дополнительных карт, если она нужна.")
     def download_additional_maps(self):
         download = self.try_get_by_text(LocalizedButtons.DOWNLOAD_NOW_BUTTON.get())
         if download:
@@ -79,6 +64,7 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
                 WebDriverWait(self.driver, 180).until(
                     EC2.element_to_be_dissapeared((By.ID, Locator.IN_PROGRESS_WHEEL.get())))
 
+    @screenshotwrap("Проверить, что построился автомобильный маршрут", two_screenshots=False)
     def wait_route_start(self):
         timeout = 180
         if WebDriverManager.get_instance().device.platform_version <= "7.0":
@@ -86,6 +72,7 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
         WebDriverWait(WebDriverManager.get_instance().driver, timeout).until(
             EC.visibility_of_element_located((By.ID, Locator.TIME.get())))
 
+    @screenshotwrap("Проверить, что при построении маршрутка отображается ошибка", two_screenshots=False)
     def wait_route_too_long(self):
         WebDriverWait(self.driver, 60).until(
             EC2.presence_one_of_elements_located(
@@ -101,6 +88,8 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
 
 
 class IosRoutingSteps(RoutingSteps, IosSteps):
+
+    @screenshotwrap("Проверить количество точек в маршруте")
     def assert_route_points(self, count, p2p=True, *points):
         metro = self.try_get(Locator.ROUTING_METRO.get())
         if metro:
@@ -119,11 +108,13 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
                 for i in range(count):
                     assert self.try_get(route_stop.format(alphabet[i]))
 
+    @screenshotwrap("Проверить, что построился маршрут такси", two_screenshots=False)
     def wait_taxi_panel(self):
         WebDriverWait(self.driver, 180).until(EC2.presence_one_of_elements_located(
             (By.ID, Locator.TAXI_VEZET.get()), (By.ID, LocalizedButtons.TAXI_NOT_FOUND.get()),
             (By.ID, LocalizedButtons.TAXI_NOT_AVAILABLE.get())))
 
+    @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
     def wait_metro_panel(self):
         WebDriverWait(self.driver, 180).until(EC2.element_to_be_dissapeared((By.ID, Locator.ROUTING_METRO.get())))
         if WebDriverManager.get_instance().device.platform_version >= "13":
@@ -134,6 +125,7 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
             WebDriverWait(self.driver, 180).until(
                 EC.presence_of_element_located((By.ID, Locator.ROUTE_METRO.get())))
 
+    @screenshotwrap("Дождаться загрузки дополнительных карт, если она нужна.")
     def download_additional_maps(self):
         download = self.try_get(Locator.DOWNLOAD_NOW_BUTTON.get())
         if download:
@@ -143,10 +135,12 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
                 WebDriverWait(self.driver, 180).until(
                     EC2.element_to_be_dissapeared((By.ID, Locator.IN_PROGRESS_WHEEL.get())))
 
+    @screenshotwrap("Проверить, что построился автомобильный маршрут", two_screenshots=False)
     def wait_route_start(self):
         WebDriverWait(self.driver, 180).until(
             EC.visibility_of_element_located((By.ID, Locator.START.get())))
 
+    @screenshotwrap("Проверить, что при построении маршрутка отображается ошибка", two_screenshots=False)
     def wait_route_too_long(self):
         WebDriverWait(self.driver, 60).until(
             EC.presence_of_element_located((By.ID, LocalizedButtons.ROUTE_PLANNING_FAILED.get())))
@@ -156,6 +150,7 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
                                                  (By.ID, LocalizedButtons.ROUTE_CLOSER.get())))
         self.try_get(Locator.SEND.get()).click()
 
+    @screenshotwrap("Проверить, что присутствует кнопка такси", two_screenshots=False)
     def assert_taxi_install_button(self):
         assert self.try_get(LocalizedButtons.INSTALL_BUTTON.get())
 
