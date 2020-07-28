@@ -138,7 +138,7 @@ def clean_device(request):
             commands.append("adb -s {} shell rm -rf /storage/emulated/0/MapsWithMe".format(device.device_id))
             commands.append("adb -s {} shell rm -rf /storage/sdcard0/MapsWithMe".format(device.device_id))
     else:
-        if request.config.getoption("--clean-device") == "true" and device.emulator is True:
+        if request.config.getoption("--clean-device") == "true" and device.emulator is False:
             commands.append("ios-deploy -i {} -1 com.mapswithme.full -9".format(device.udid))
             commands.append("ios-deploy -i {} -1 com.my.maps-beta-enterprise -9".format(device.udid))
             commands.append("ios-deploy -i {} -1 com.facebook.wda.runner -9".format(device.udid))
