@@ -164,16 +164,19 @@ def pytest_runtest_makereport(item, call):
             with open(filename, 'wb') as ff:
                 ff.write(image_64_decode)
             test_r = None
-            with open("testresult.txt", "r") as f:
-                test_r = f.read()
-
-            params = {"test_result": test_r,
-                      "log": "Error:<br> {}".format(log),
-                      "file": screencap,
-                      "timestamp": datetime.now(),
-                      "is_fail": True,
-                      "before": True}
-            resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+            try:
+                with open("testresult.txt", "r") as f:
+                    test_r = f.read()
+    
+                params = {"test_result": test_r,
+                          "log": "Error:<br> {}".format(log),
+                          "file": screencap,
+                          "timestamp": datetime.now(),
+                          "is_fail": True,
+                          "before": True}
+                resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+            except FileNotFoundError:
+                pass
 
             extra.append(pytest_html.extras.image(item.name + ".png"))
         rep.extra = extra
