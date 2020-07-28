@@ -150,6 +150,10 @@ node('naboo') {
                                 str = str + " --skip-webview"
                             }
 
+                            if (device.contains("Sim")) {
+                                str = str + " --simulator"
+                            }
+
                             if (mark != null && mark != '') {
                                 str = str + " -m ${mark}"
                             }
