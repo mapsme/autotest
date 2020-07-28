@@ -26,33 +26,33 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
         @wraps(func)
         def wrapper(*args, **kwargs):
             if two_screenshots:
-            # path = dirname(realpath(__file__)).split('mapsme')[0]
-            filename = 'before_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
-                                                 datetime.now().strftime("%H_%M_%S"))
-            screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
-            # image_64_decode = base64.b64decode(screencap)
-            # with open(filename, 'wb') as ff:
-            #    ff.write(image_64_decode)
-            test_r = None
-            try:
-                with open("testresult.txt", "r") as f:
-                    test_r = f.read()
-                if test_r and test_r != "0":
-                    additional = "".join([x for x in args if isinstance(x, str)])
+                # path = dirname(realpath(__file__)).split('mapsme')[0]
+                filename = 'before_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
+                                                     datetime.now().strftime("%H_%M_%S"))
+                screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
+                # image_64_decode = base64.b64decode(screencap)
+                # with open(filename, 'wb') as ff:
+                #    ff.write(image_64_decode)
+                test_r = None
+                try:
+                    with open("testresult.txt", "r") as f:
+                        test_r = f.read()
+                    if test_r and test_r != "0":
+                        additional = "".join([x for x in args if isinstance(x, str)])
 
-                    text = stepname
-                    if additional != "":
-                        text = "{}: {}".format(text, additional)
+                        text = stepname
+                        if additional != "":
+                            text = "{}: {}".format(text, additional)
 
-                    params = {"test_result": test_r,
-                              "log": text,
-                              "file": screencap,
-                              "timestamp": datetime.now(),
-                              "is_fail": False,
-                              "before": True}
-                    resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
-            except FileNotFoundError:
-                pass
+                        params = {"test_result": test_r,
+                                  "log": text,
+                                  "file": screencap,
+                                  "timestamp": datetime.now(),
+                                  "is_fail": False,
+                                  "before": True}
+                        resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+                except FileNotFoundError:
+                    pass
 
             result = func(*args, **kwargs)
             sleep(2)
