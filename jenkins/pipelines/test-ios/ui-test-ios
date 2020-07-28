@@ -160,6 +160,8 @@ node('naboo') {
 
                             pytest_start = pytest_start + str
 
+                            echo pytest_start
+
                             withCredentials([usernamePassword(credentialsId: 'booking-credentials', passwordVariable: 'booking_api_pass', usernameVariable: 'booking_api_user'), usernamePassword(credentialsId: 'qatest', passwordVariable: 'test_pass', usernameVariable: 'test_user')]) {
                                 sh """#!/bin/bash
                                 export WORKSPACE=`pwd`
