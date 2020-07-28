@@ -75,11 +75,17 @@ node('naboo') {
                         str = str + " --skip-webview"
                     }
 
+		if (device.contains('Sim')) {
+                        str = str + " --simulator"
+                    }
+
                     if (mark != null && mark != '') {
                         str = str + " -m ${mark}"
                     }
 
                     pytest_start = pytest_start + str
+		
+			echo pytest_start
 
                     withCredentials([usernamePassword(credentialsId: 'booking-credentials', passwordVariable: 'booking_api_pass', usernameVariable: 'booking_api_user'), usernamePassword(credentialsId: 'qatest', passwordVariable: 'test_pass', usernameVariable: 'test_user')]) {
                         sh """#!/bin/bash
