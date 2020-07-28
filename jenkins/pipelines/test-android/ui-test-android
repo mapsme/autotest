@@ -23,7 +23,7 @@ node('autotest') {
                 echo "Upstream cause is null"
                 if (build_number == null || build_number == ""){
                     echo "Build number is null"
-                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', ≠, fingerprintArtifacts: true, projectName: 'Android'
+                    copyArtifacts flatten: true, filter: '*/**/android-web-universal*', target: 'general-ui-autotests', fingerprintArtifacts: true, projectName: 'Android'
                 }
                 else {
                     echo "Build number is ${build_number}"
