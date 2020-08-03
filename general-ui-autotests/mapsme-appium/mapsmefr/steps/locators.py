@@ -50,6 +50,7 @@ class LocalizedButtons(Localized):
     EDIT_PLACE = {"ru": "Редактировать место", "en": "Edit Place"}
     SAVE = {"ru": "Сохранить", "en": "Save"}
     EDIT = {"ru": "Редактировать", "en": "Edit"}
+    EDIT_BK = {"ru": "Править", "en": "Edit"}
 
     ALERT_ALLOW_ALWAYS = {"ru": "Разрешать всегда", "en": "Always Allow"}
     ALERT_ALLOW = {"ru": "Allow", "en": "Allow"}

@@ -299,7 +299,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
     def click_delete_bookmark(self, name):
         bookmark = self.try_find_bookmark_with_scroll(name)
         if bookmark:
-            self.try_get(LocalizedButtons.EDIT.get()).click()
+            self.try_get(LocalizedButtons.EDIT_BK.get()).click()
             sleep(1)
             self.try_get_by_xpath(
                 "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@type='XCUIElementTypeButton']".format(
@@ -393,7 +393,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
 
     @screenshotwrap("Изменить описание метки")
     def change_bookmark_description(self, text):
-        self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").click()
+        self.try_get_by_xpath("//*[@type='XCUIElementTypeCell' and ./*[@type='XCUIElementTypeTextView']]").click()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").clear()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").send_keys(text)
 
@@ -423,7 +423,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
 
     @screenshotwrap("Изменить описание группы меток")
     def change_group_description(self, text):
-        self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").click()
+        self.try_get_by_xpath("//*[@type='XCUIElementTypeCell' and ./*[@type='XCUIElementTypeTextView']]").click()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").clear()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").send_keys(text)
 
