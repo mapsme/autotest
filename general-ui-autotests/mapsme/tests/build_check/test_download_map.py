@@ -77,7 +77,7 @@ class TestDownloadMapsme:
     def test_download_fragment_from_pp(self, main, steps):
         steps.delete_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.PRIMORSKY_KRAI)
         steps.search(LocalizedMapsNames.VLADIVOSTOK.get())
-        steps.choose_first_search_result()
+        steps.choose_first_search_result(category=LocalizedCategories.CITY.get())
 
         steps.download_map_from_pp()
 

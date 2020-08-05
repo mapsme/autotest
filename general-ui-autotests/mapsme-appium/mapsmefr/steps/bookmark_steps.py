@@ -341,8 +341,8 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
         self.click_bookmarks()
         self.click_bookmark_group(group_name)
 
-        if self.try_get(LocalizedButtons.EDIT.get()):
-            self.try_get(LocalizedButtons.EDIT.get()).click()
+        if self.try_get(LocalizedButtons.EDIT_BK.get()):
+            self.try_get(LocalizedButtons.EDIT_BK.get()).click()
 
         while self.try_get_by_text(LocalizedButtons.DELETE.get(), strict=False):
             self.try_get_by_text(LocalizedButtons.DELETE.get(), strict=False).click()

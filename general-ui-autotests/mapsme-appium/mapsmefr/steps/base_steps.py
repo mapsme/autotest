@@ -467,11 +467,15 @@ class AndroidSteps(BaseSteps):
         city, _ = self.try_find_map_with_scroll(city_name.get())
 
         if city:
-            TouchAction(self.driver).long_press(city).perform()
-            # city.click()
-            self.try_get_by_text(text=LocalizedButtons.DELETE.get()).click()
+            self.click_delete_map(city)
 
         self.press_back_until_main_page()
+
+    @screenshotwrap("Удалить карту")
+    def click_delete_map(self, city):
+        TouchAction(self.driver).long_press(city).perform()
+        # city.click()
+        self.try_get_by_text(text=LocalizedButtons.DELETE.get()).click()
 
     def try_find_map_with_scroll(self, name):
         country, i = self.try_get_by_text(locator=Locator.NAME, text=name)
@@ -1080,7 +1084,8 @@ class IosSteps(BaseSteps):
         assert button_download
         button_download.click()
 
-        WebDriverWait(self.driver, 120).until(EC2.element_to_be_dissapeared((By.ID, map_name)))
+        WebDriverWait(self.driver, 120).until(EC2.element_to_be_dissapeared(
+            (By.XPATH, "//*[@type='XCUIElementTypeOther']/*[@name='{}']".format(map_name))))
 
     @screenshotwrap("Подождать автозагрузку карты")
     def wait_map_auto_download(self, map_name):
