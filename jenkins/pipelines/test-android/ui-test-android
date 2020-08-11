@@ -3,7 +3,7 @@ library 'test-utils'
 import hudson.tasks.test.AbstractTestResultAction;
 import groovy.json.JsonOutput
 
-node('autotest') {
+node('naboo') {
 
     stage('git') {
         deleteDir()

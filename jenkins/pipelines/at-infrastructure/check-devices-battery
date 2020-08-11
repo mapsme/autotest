@@ -1,4 +1,4 @@
-node("autotest"){
+node("naboo"){
     stage('git') {
         deleteDir()
         git credentialsId: 'jenkins-github-ssh', branch: "master", url: 'git@github.com:mapsme/autotest.git'    }
