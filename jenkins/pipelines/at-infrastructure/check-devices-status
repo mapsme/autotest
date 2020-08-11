@@ -25,6 +25,7 @@ node(node){
                         	sh """python3 -m venv ./autotest 
                     	source ./autotest/bin/activate
                     	pip3 install -r requirements.txt 
+                        python3 check_devices.py -p Android
                     	python3 check_devices.py -p IOS"""
             	}
     	}

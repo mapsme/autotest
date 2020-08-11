@@ -1,12 +1,15 @@
-node("autotest"){
+node("naboo"){
     stage('git') {
         deleteDir()
         git credentialsId: 'jenkins-github-ssh', branch: "master", url: 'git@github.com:mapsme/autotest.git'
     }
     stage('check') {
 	dir('general-ui-autotests') {
-        	sh "python3 check_space.py"
-	}
+            sh """python3 -m venv ./autotest 
+                  source ./autotest/bin/activate
+                  pip3 install -r requirements.txt 
+                  python3 check_space.py"""
+	   }
     }
     
     stage("copy artifacts") {

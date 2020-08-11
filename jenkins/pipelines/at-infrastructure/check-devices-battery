@@ -4,8 +4,11 @@ node("autotest"){
         git credentialsId: 'jenkins-github-ssh', branch: "master", url: 'git@github.com:mapsme/autotest.git'    }
     stage('check') {
 	dir('general-ui-autotests') {
-        	sh "python3 check_battery.py"
-	}
+            sh """python3 -m venv ./autotest 
+                  source ./autotest/bin/activate
+                  pip3 install -r requirements.txt 
+                  python3 check_battery.py"""
+	   }
     }
     
     stage("changes") {
