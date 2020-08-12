@@ -271,9 +271,12 @@ class AndroidSteps(BaseSteps):
     def choose_first_search_result(self, category=None):
         if category:
             first_result = self.try_get_by_text(category)
+            timeout = time.time() + 60
             while not first_result or not is_element_scrolled(self.driver, first_result):
                 self.scroll_down(small=True)
                 first_result = self.try_get_by_text(category)
+                if time.time() > timeout:
+                    break
         else:
             first_result = WebDriverManager.get_instance().driver.find_element_by_id(Locator.TITLE.get())
         logging.info("Choose first search result: {}".format(first_result.text))
@@ -645,9 +648,12 @@ class IosSteps(BaseSteps):
     def choose_first_search_result(self, category=None):
         if category:
             first_result = self.try_get_by_xpath("//*[@name='searchType' and @value='{}']".format(category))
+            timeout = time.time() + 60
             while not is_element_scrolled(self.driver, first_result):
                 self.scroll_down(small=True)
                 first_result = self.try_get_by_xpath("//*[@name='searchType' and @value='{}']".format(category))
+                if time.time() > timeout:
+                    break
         else:
             first_result = WebDriverManager.get_instance().driver.find_element_by_id(Locator.TITLE.get())
         logging.info("Choose first search result: {}".format(first_result.text))
