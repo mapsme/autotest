@@ -232,6 +232,10 @@ class BaseSteps(CommonSteps):
             categories = self.try_get(LocalizedButtons.SEARCH_CATEGORIES_TAB.get())
         categories.click()
 
+    # no implementation for android needed
+    def pp_get_title(self):
+        pass
+
 
 class AndroidSteps(BaseSteps):
 
