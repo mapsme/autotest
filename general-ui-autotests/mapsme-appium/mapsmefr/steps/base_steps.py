@@ -860,7 +860,7 @@ class IosSteps(BaseSteps):
         self.driver.implicitly_wait(3)
         self._press_back_all(Locator.SEND.get(), LocalizedButtons.CANCEL.get(), LocalizedButtons.CANCELLATION.get(),
                              Locator.CANCEL_BUTTON.get(), "goBackButton", LocalizedButtons.BACK.get(), "ic cancel",
-                             "notNowButton", "ic nav bar back")
+                             "notNowButton", "ic nav bar back", "ic clear 24")
 
         anchor_timeout = time.time() + 30  # 30s from now
 
@@ -1091,7 +1091,8 @@ class IosSteps(BaseSteps):
         button_download.click()
 
         WebDriverWait(self.driver, 120).until(EC2.element_to_be_dissapeared(
-            (By.XPATH, "//*[@type='XCUIElementTypeOther']/*[@name='{}']".format(map_name))))
+            (By.XPATH, "//*[@type='XCUIElementTypeOther' and ./*[@name='{}']]/*[@name='{}']".format(
+                Locator.DOWNLOAD_MAP_BUTTON.get(), map_name))))
 
     @screenshotwrap("Подождать автозагрузку карты")
     def wait_map_auto_download(self, map_name):
