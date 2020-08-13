@@ -20,6 +20,7 @@ class TestPlacePageMapsme:
     def main(self, testitem, press_back_to_main):
         pass
 
+    @pytest.mark.name("[Place Page] Проверка описания достопримечательности на PP")
     def test_poi_description(self, main, steps):
         steps.search("Владимир Великий")
         steps.choose_first_search_result(category=LocalizedCategories.MEMORIAL.get())
@@ -34,6 +35,7 @@ class TestPlacePageMapsme:
         steps.scroll_down()
         steps.assert_poi_description(LocalizedButtons.VLADIMIR_MEMORIAL_DESCRIPTION.get(), no=True)
 
+    @pytest.mark.name("[Place Page] Проверка порядка кнопок на PP")
     def test_pp_buttons(self, main, steps, b_steps):
         panel = BottomPanel()
         # if get_settings("System", "platform") == "Android":
@@ -82,6 +84,7 @@ class TestPlacePageMapsme:
         steps.assert_buttons_order(LocalizedButtons.FROM.get(), LocalizedButtons.BOOKMARK.get(),
                                    LocalizedButtons.TO.get(), LocalizedButtons.SHARE_BOOKMARK.get())
 
+    @pytest.mark.name("[Place Page] Проверка описания и рекламы на топонимах")
     def test_pp_toponyms(self, main, steps):
         steps.search(LocalizedMapsNames.MOSCOW.get())
         steps.choose_first_search_result(category=LocalizedCategories.CAPITAL.get())
@@ -90,7 +93,6 @@ class TestPlacePageMapsme:
         steps.scroll_down()
         assert steps.try_get_by_text(LocalizedButtons.DETAILS.get())
 
-        page = DiscoveryPage()
         sleep(5)
         steps.try_get_by_text(LocalizedButtons.DETAILS.get()).click()
         assert GuidesCatalog().navigation_bar_title()
@@ -102,7 +104,7 @@ class TestPlacePageMapsme:
         steps.assert_catalog_promo(no=True)
         assert steps.try_get(Locator.AD_BANNER.get())
 
-
+    @pytest.mark.name("[Place Page] Проверка отображения гидов и рекламы на PP достопримечательностей")
     def test_pp_sight_guides(self, main, steps, bookmark_steps):
         bookmark_steps.delete_all_groups()
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), LocalizedButtons.TRETYAKOV.get())
@@ -144,6 +146,7 @@ class TestPlacePageMapsme:
     # assert not steps.try_get(Locator.PROMO_POI_CTA_BUTTON.get())
     #assert not steps.try_get(Locator.POI_DESCRIPTION.get())
 
+    @pytest.mark.name("[Place Page][Ads] Проверка рекламы на PP")
     def test_ad_banner(self, main, steps, settings_steps):
         steps.search(LocalizedMapsNames.CHELYABINSK.get())
         steps.choose_first_search_result(category=LocalizedCategories.CAPITAL.get())

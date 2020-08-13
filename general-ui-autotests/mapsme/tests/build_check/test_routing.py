@@ -887,6 +887,7 @@ class TestRoutingMapsme:
                             return i / width, j / height
                         n = n + 1
 
+    @pytest.mark.name("[Routing][Subway] Проверка отображения слоя метро на карте")
     def test_metro_layer(self, main, steps):
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.CHELYABINSK)
         steps.search("Red square")

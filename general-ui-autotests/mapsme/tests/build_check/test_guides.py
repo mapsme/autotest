@@ -22,6 +22,7 @@ class TestGuidesMapsme:
     def main(self, emulate_location_moscow, testitem, press_back_to_main, switch_to_native):
         pass
 
+    @pytest.mark.name("[Subscription] Проверка баннера подписки в каталоге")
     def test_subscription_banner(self, main, steps, bookmark_steps):
         BottomPanel().bookmarks().click()
         steps.try_get_by_text(LocalizedButtons.GUIDES.get()).click()
@@ -43,6 +44,7 @@ class TestGuidesMapsme:
         assert not banner.title()
 
     @pytest.mark.skip
+    @pytest.mark.name("[Subscription] Проверка баннера подписки в поиске")
     def test_search_banner(self, main, steps, bookmark_steps):
         BottomPanel().bookmarks().click()
         steps.try_get_by_text(LocalizedButtons.GUIDES.get()).click()
