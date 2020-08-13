@@ -842,8 +842,9 @@ class TestRoutingMapsme:
         filename = "ferry_road.png"
         steps.driver.get_screenshot_as_file(filename)
         coor = self.get_coords_proportions(filename)
-        TouchAction(steps.driver).tap(x=round(coor[0] * steps.driver.get_window_size()["width"]),
-                                      y=round(coor[1] * steps.driver.get_window_size()["height"])).perform()
+        logging.info(str(coor))
+        TouchAction(steps.driver).tap(x=round(coor[0] * steps.driver.get_window_size()["width"]) + 10,
+                                      y=round(coor[1] * steps.driver.get_window_size()["height"]) + 10).perform()
 
         assert steps.try_get_by_text(LocalizedButtons.AVOID_FERRY_ROADS.get())
         assert steps.try_get_by_text(LocalizedButtons.FERRY_ROAD.get(), strict=False)

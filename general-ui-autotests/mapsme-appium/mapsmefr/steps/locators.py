@@ -87,7 +87,7 @@ class LocalizedButtons(Localized):
     TAXI_NOT_FOUND = {"ru": "Не удалось найти такси поблизости", "en": "Couldn't find a taxi nearby"}
     TAXI_NOT_AVAILABLE = {"ru": "Заказ такси временно недоступен.", "en": "Taxi ordering is temporarily unavailable."}
     TAXI_IS_NOT_AVAILABLE_HERE = {"ru": "Такси не доступно в данном регионе", "en": "Taxi is not available here"}
-    TAXI = {"en": "Taxi"}
+    TAXI = {"en": "Taxi", "ru": "Такси"}
 
     HOTEL_FILTER = {"ru": "Фильтр", "en": "Filter"}
     SEARCH_HOTEL_FILTER = {"ru": "Поиск", "en": "Search"}
