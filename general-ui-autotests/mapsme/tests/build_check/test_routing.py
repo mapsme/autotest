@@ -775,7 +775,7 @@ class TestRoutingMapsme:
 
         filename = "toll_road.png"
         steps.driver.get_screenshot_as_file(filename)
-        coor = self.get_coords_proportions(filename)
+        coor = self.get_coords_proportions(filename, proportions=steps.driver.get_window_size())
         TouchAction(steps.driver).tap(x=round(coor[0] * steps.driver.get_window_size()["width"]),
                                       y=round(coor[1] * steps.driver.get_window_size()["height"])).perform()
 
@@ -808,7 +808,7 @@ class TestRoutingMapsme:
 
         filename = "unpaved_road.png"
         steps.driver.get_screenshot_as_file(filename)
-        coor = self.get_coords_proportions(filename)
+        coor = self.get_coords_proportions(filename, proportions=steps.driver.get_window_size())
         TouchAction(steps.driver).tap(x=round(coor[0] * steps.driver.get_window_size()["width"]),
                                       y=round(coor[1] * steps.driver.get_window_size()["height"])).perform()
 
@@ -834,17 +834,18 @@ class TestRoutingMapsme:
 
         r_steps.download_additional_maps()
         r_steps.wait_route_start()
-        steps.try_get(Locator.ZOOM_IN.get()).click()
+        # steps.try_get(Locator.ZOOM_IN.get()).click()
 
         assert steps.try_get(Locator.DRIVING_OPTIONS.get())
         sleep(5)
 
         filename = "ferry_road.png"
         steps.driver.get_screenshot_as_file(filename)
-        coor = self.get_coords_proportions(filename)
+        coor = self.get_coords_proportions(filename, proportions=steps.driver.get_window_size())
         logging.info(str(coor))
         TouchAction(steps.driver).tap(x=round(coor[0] * steps.driver.get_window_size()["width"]) + 10,
                                       y=round(coor[1] * steps.driver.get_window_size()["height"]) + 10).perform()
+
 
         assert steps.try_get_by_text(LocalizedButtons.AVOID_FERRY_ROADS.get())
         assert steps.try_get_by_text(LocalizedButtons.FERRY_ROAD.get(), strict=False)
@@ -867,15 +868,13 @@ class TestRoutingMapsme:
                     if i > 200 and j > 100:
                         return i, j
 
-    def get_coords_proportions(self, filename, number=1):
+    def get_coords_proportions(self, filename, proportions=None):
         img = Image.open(filename)
         img = img.convert("RGB")
 
         width, height = img.size
 
         rg = None
-        n = 1
-
         for i in range(width):
             for j in range(height):
                 x = img.getpixel((i, j))
@@ -884,9 +883,9 @@ class TestRoutingMapsme:
 
                 if rg[1] < 60 and rg[2] < 60 and rg[0] > 200:
                     if i > 200 and j > 100:
-                        if n == number:
-                            return i / width, j / height
-                        n = n + 1
+                        if proportions:
+                            return i / proportions["width"], j / proportions["height"]  # 1080 x 2340
+                        return i / width, j / height  #1080 x 2340
 
     @pytest.mark.name("[Routing][Subway] Проверка отображения слоя метро на карте")
     def test_metro_layer(self, main, steps):

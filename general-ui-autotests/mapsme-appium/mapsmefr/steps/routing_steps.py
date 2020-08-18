@@ -45,9 +45,9 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
     @screenshotwrap("Проверить, что построился маршрут такси", two_screenshots=False)
     def wait_taxi_panel(self):
         WebDriverWait(self.driver, 180).until(EC2.presence_one_of_elements_located(
-            (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_NOT_FOUND.get())),
-            (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_NOT_AVAILABLE.get())),
-            (By.XPATH, "//*[@text='{}']".format(LocalizedButtons.TAXI_IS_NOT_AVAILABLE_HERE.get())),
+            (By.XPATH, "//*[contains(@text,'{}')]".format(LocalizedButtons.TAXI_NOT_FOUND.get())),
+            (By.XPATH, "//*[contains(@text,'{}')]".format(LocalizedButtons.TAXI_NOT_AVAILABLE.get())),
+            (By.XPATH, "//*[contains(@text,'{}')]".format(LocalizedButtons.TAXI_IS_NOT_AVAILABLE_HERE.get())),
             (By.ID, Locator.TAXI_VEZET.get())))
 
     @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
@@ -57,7 +57,8 @@ class AndroidRoutingSteps(RoutingSteps, AndroidSteps):
 
     @screenshotwrap("Проверить, что присутствует кнопка такси", two_screenshots=False)
     def assert_taxi_install_button(self):
-        assert self.try_get_by_text(LocalizedButtons.INSTALL_BUTTON.get())
+        assert self.try_get_by_text(LocalizedButtons.INSTALL_BUTTON.get()) or self.try_get_by_text(
+            LocalizedButtons.ORDER_TAXI.get())
 
     @screenshotwrap("Дождаться загрузки дополнительных карт, если она нужна.")
     def download_additional_maps(self):
@@ -167,7 +168,9 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
 
     @screenshotwrap("Проверить, что присутствует кнопка такси", two_screenshots=False)
     def assert_taxi_install_button(self):
-        assert self.try_get(LocalizedButtons.INSTALL_BUTTON.get())
+        WebDriverWait(self.driver, 30).until(
+            EC2.presence_one_of_elements_located((By.ID, LocalizedButtons.INSTALL_BUTTON.get()),
+                                                 (By.ID, LocalizedButtons.ORDER_TAXI.get())))
 
     def assert_route_type(self, route_type):
         assert not self.try_get(route_type)

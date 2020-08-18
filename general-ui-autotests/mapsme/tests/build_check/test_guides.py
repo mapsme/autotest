@@ -22,6 +22,7 @@ class TestGuidesMapsme:
     def main(self, emulate_location_moscow, testitem, press_back_to_main, switch_to_native):
         pass
 
+    @pytest.mark.releaseonly
     @pytest.mark.name("[Subscription] Проверка баннера подписки в каталоге")
     def test_subscription_banner(self, main, steps, bookmark_steps):
         BottomPanel().bookmarks().click()

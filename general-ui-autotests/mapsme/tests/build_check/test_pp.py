@@ -22,7 +22,7 @@ class TestPlacePageMapsme:
 
     @pytest.mark.name("[Place Page] Проверка описания достопримечательности на PP")
     def test_poi_description(self, main, steps):
-        steps.search("Владимир Великий")
+        steps.search("Владимиру Великому")
         steps.choose_first_search_result(category=LocalizedCategories.MEMORIAL.get())
         steps.assert_pp(LocalizedButtons.VLADIMIR_VELIKI.get())
         steps.assert_category_on_pp(LocalizedCategories.MEMORIAL.get())

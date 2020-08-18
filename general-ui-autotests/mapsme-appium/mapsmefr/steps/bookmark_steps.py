@@ -107,6 +107,7 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
         self._wait_in_progress()
         self.press_back_until_main_page()
         self.click_bookmarks()
+        self.try_get_by_text(LocalizedButtons.BOOKMARKS.get()).click()
         self.click_bookmark_group(group_name)
 
         bookmarks = self.driver.find_elements_by_id(Locator.BOOKMARK_NAME.get())
@@ -161,6 +162,7 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
     def delete_all_groups(self):
         self.press_back_until_main_page()
         self.click_bookmarks()
+        self.try_get_by_text(LocalizedButtons.BOOKMARKS.get()).click()
         groups = self.driver.find_elements_by_xpath(
             "//*[@class='android.widget.RelativeLayout' and not(./*[@text='{}'])]/*[@resource-id='{}']"
                 .format(LocalizedButtons.MY_BOOKMARKS.get(), "{}:id/more".format(get_settings("Android", "package"))))

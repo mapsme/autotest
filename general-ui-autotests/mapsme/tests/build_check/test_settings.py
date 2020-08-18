@@ -42,6 +42,7 @@ class TestSettingsMapsme:
         settings_steps.switch_speed_cameras(LocalizedSettings.AUTO.get())
         steps.press_back_until_main_page()
 
+    @pytest.mark.name("[Settings] Проверка сохранения настроек")
     def test_settings_saving(self, main, steps, settings_steps, system_steps, set_main_settings):
         settings_steps.open_settings()
         settings_steps.choose_radio_settings(LocalizedSettings.MEASUREMENT_UNITS.get(), LocalizedSettings.MILES.get())
