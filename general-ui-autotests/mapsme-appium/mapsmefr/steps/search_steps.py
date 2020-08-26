@@ -45,7 +45,7 @@ class AndroidSearchSteps(SearchSteps, AndroidSteps):
         sights = [LocalizedCategories.RESTAURANT.get(), LocalizedCategories.CAFE.get(),
                   LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.BAR.get(),
                   LocalizedCategories.PUB.get(), LocalizedCategories.FASTFOOD.get(),
-                  LocalizedCategories.GROCERY.get()]
+                  LocalizedCategories.GROCERY.get(), LocalizedCategories.LIQUOR_STORE.get()]
         for _ in range(3):
             results = [x.text for x in self.driver.find_elements_by_id("description")]
             for res in results:
@@ -55,7 +55,13 @@ class AndroidSearchSteps(SearchSteps, AndroidSteps):
 
     def assert_shops_list(self):
         sights = [LocalizedCategories.MALL.get(), LocalizedCategories.CAFE.get(),
-                  LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.GROCERY.get()]
+                  LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.GROCERY.get(),
+                  LocalizedCategories.SHOP.get(), LocalizedCategories.CLOTHES_SHOP.get(),
+                  LocalizedCategories.BEAUTY_SHOP.get(), LocalizedCategories.JEWELRY.get(),
+                  LocalizedCategories.FLORISTS.get(), LocalizedCategories.CAR_SHOP.get(),
+                  LocalizedCategories.TICKET_SHOP.get(), LocalizedCategories.OPTICIAN.get(),
+                  LocalizedCategories.BOOKSTORE.get(), LocalizedCategories.LIQUOR_STORE.get(),
+                  LocalizedCategories.GIFT_SHOP.get()]
         for _ in range(3):
             results = [x.text for x in self.driver.find_elements_by_id("description")]
             for res in results:
@@ -94,7 +100,7 @@ class IosSearchSteps(SearchSteps, IosSteps):
         food = [LocalizedCategories.RESTAURANT.get(), LocalizedCategories.CAFE.get(),
                 LocalizedCategories.MARKETPLACE.get(), LocalizedCategories.BAR.get(),
                 LocalizedCategories.PUB.get(), LocalizedCategories.FASTFOOD.get(),
-                LocalizedCategories.GROCERY.get()]
+                LocalizedCategories.GROCERY.get(), LocalizedCategories.LIQUOR_STORE.get()]
         results = self.driver.find_elements_by_xpath(
             "//*[@type='XCUIElementTypeTable']/*[@type='XCUIElementTypeCell']")
         for res in results:
@@ -109,7 +115,9 @@ class IosSearchSteps(SearchSteps, IosSteps):
                  LocalizedCategories.SHOP.get(), LocalizedCategories.CLOTHES_SHOP.get(),
                  LocalizedCategories.BEAUTY_SHOP.get(), LocalizedCategories.JEWELRY.get(),
                  LocalizedCategories.FLORISTS.get(), LocalizedCategories.CAR_SHOP.get(),
-                 LocalizedCategories.TICKET_SHOP.get(), LocalizedCategories.OPTICIAN.get()]
+                 LocalizedCategories.TICKET_SHOP.get(), LocalizedCategories.OPTICIAN.get(),
+                 LocalizedCategories.BOOKSTORE.get(), LocalizedCategories.LIQUOR_STORE.get(),
+                 LocalizedCategories.GIFT_SHOP.get()]
         results = self.driver.find_elements_by_xpath(
             "//*[@type='XCUIElementTypeTable']/*[@type='XCUIElementTypeCell']")
         for res in results:

@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 @pytest.mark.build_check
+@pytest.mark.downloadmap
 class TestDownloadMapsme:
 
     @pytest.fixture

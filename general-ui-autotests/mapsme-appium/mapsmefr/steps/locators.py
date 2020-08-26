@@ -482,6 +482,9 @@ class LocalizedCategories(Localized):
     CAR_SHOP = {"en": "Car Shop", "ru": "Автосалон"}
     TICKET_SHOP = {"en": "Ticket Shop", "ru": "Билетная касса"}
     OPTICIAN = {"en": "Optician’s", "ru": "Оптика"}
+    LIQUOR_STORE = {"en": "Liquor Store", "ru": "Магазин алкоголя"}
+    BOOKSTORE = {'en': "Bookstore", "ru": "Книжный магазин"}
+    GIFT_SHOP = {"en": "Gift Shop", "ru": "Магазин сувениров"}
 
     MALL = {"ru": "Торговый центр", "en": "Mall"}
 
