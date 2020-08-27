@@ -12,6 +12,19 @@ node("falcon") {
           sh "npm install"
           sh "npm run build"
       }
+
+	dir('infrastructure/backend') {
+      def sk = sh returnStdout: true, label: '', script: '''#!/bin/bash
+               python3 -m venv ./autotest
+               source ./autotest/bin/activate
+               pip3 install -r requirements.txt
+               python3 -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\"
+              '''     
+      def f = sk.split("\n")[-1]
+      
+      sh "sed -i 's/SECRET_KEY = \'\'/SECRET_KEY = \"${f}\"/g' ./backend/settings.py"
+	sh "sed -i 's/DEBUG = True/DEBUG = False/g' ./backend/settings.py"
+      }
       
       if (new Boolean(migrations)) {
          dir('infrastructure/backend') {

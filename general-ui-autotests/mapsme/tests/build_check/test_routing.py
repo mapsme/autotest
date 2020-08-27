@@ -39,7 +39,6 @@ class TestRoutingMapsme:
             steps.try_get(Locator.ROUTING_CAR.get()).click()
             sleep(2)
 
-    @pytest.mark.skip
     @pytest.mark.name(
         "[Routing][Car]Проверка выбора финиша выбором букмарки (кнопка слева) и на PP нажатием на кнопку Route To")
     def test_auto_routing_bookmark(self, main, download_moscow_map, steps, r_steps, bookmark_steps):
@@ -60,7 +59,6 @@ class TestRoutingMapsme:
 
         r_steps.wait_route_start()
 
-    @pytest.mark.skip
     @pytest.mark.name(
         "[Routing][Walk]Проверка выбора финиша выбором букмарки (кнопка слева) и на PP нажатием на кнопку Route To")
     def test_walk_routing_bookmark(self, main, download_moscow_map, steps, r_steps, bookmark_steps):
@@ -92,7 +90,6 @@ class TestRoutingMapsme:
         r_steps.wait_route_start()
         assert not steps.try_get(Locator.ROUTING_WALK.get())
 
-    @pytest.mark.skip
     @pytest.mark.name(
         "[Routing][Bike]Проверка выбора финиша выбором букмарки (кнопка слева) и на PP нажатием на кнопку Route To")
     def test_bike_routing_bookmark(self, main, download_moscow_map, steps, r_steps, bookmark_steps):
@@ -124,7 +121,6 @@ class TestRoutingMapsme:
         r_steps.wait_route_start()
         assert not steps.try_get(Locator.ROUTING_BIKE.get())
 
-    @pytest.mark.skip
     @pytest.mark.build_check
     @pytest.mark.name("[Routing][Car] My position авто с 3 промежуточными точками и несколькими mwm и началом движения")
     def test_routing_auto(self, main, download_moscow_map, steps, r_steps):
@@ -652,6 +648,7 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
 
         panel.add_stop().click()
+        sleep(5)
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
@@ -686,6 +683,7 @@ class TestRoutingMapsme:
         steps.choose_first_search_result()
 
         panel.add_stop().click()
+        sleep(10)
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
@@ -722,6 +720,7 @@ class TestRoutingMapsme:
 
         steps.press_back_until_main_page()
         steps.search("Compton Park")
+        sleep(5)
         steps.choose_first_search_result(category=LocalizedCategories.PARK.get())
 
         panel.route_from().click()
@@ -788,7 +787,7 @@ class TestRoutingMapsme:
         steps.download_map(LocalizedMapsNames.SPAIN, None, LocalizedMapsNames.SEVILLE)
         panel = BottomPanel()
         steps.press_back_until_main_page()
-        steps.search("P.N. Los Alcornocales")
+        steps.search("Huerto de Cubiches")  #Huerta Vieja El Algarobbo El Chaparro Puyol
         steps.choose_first_search_result()
 
         panel.route_from().click()
@@ -797,11 +796,12 @@ class TestRoutingMapsme:
             el.click()
         steps.try_get(Locator.ROUTING_CHOOSE_POINT.get()).click()
         steps.search("Sierra de Ojen", click_search_button=False)
-        steps.choose_first_search_result()
+        steps.choose_first_search_result(category=LocalizedCategories.MOUNTAIN.get())
 
         r_steps.download_additional_maps()
         r_steps.wait_route_start()
-        steps.try_get(Locator.ZOOM_IN.get()).click()
+        #steps.try_get(Locator.ZOOM_IN.get()).click()
+        #steps.try_get(Locator.ZOOM_IN.get()).click()
 
         assert steps.try_get(Locator.DRIVING_OPTIONS.get())
         sleep(5)
@@ -846,7 +846,6 @@ class TestRoutingMapsme:
         TouchAction(steps.driver).tap(x=round(coor[0] * steps.driver.get_window_size()["width"]) + 10,
                                       y=round(coor[1] * steps.driver.get_window_size()["height"]) + 10).perform()
 
-
         assert steps.try_get_by_text(LocalizedButtons.AVOID_FERRY_ROADS.get())
         assert steps.try_get_by_text(LocalizedButtons.FERRY_ROAD.get(), strict=False)
 
@@ -883,7 +882,7 @@ class TestRoutingMapsme:
 
                 if rg[1] < 60 and rg[2] < 60 and rg[0] > 200:
                     if i > 200 and j > 100:
-                        if proportions:
+                        if get_settings("System", "platform") == "Android":
                             return i / proportions["width"], j / proportions["height"]  # 1080 x 2340
                         return i / width, j / height  #1080 x 2340
 
@@ -901,11 +900,13 @@ class TestRoutingMapsme:
         sleep(1)
         assert self.assert_get_coords_subway(filename, False)
         steps.try_get(Locator.MAP_LAYERS.get()).click()
-        subway = steps.try_get_by_xpath(
-            "//*[@class='android.widget.LinearLayout' and ./*[@text='{}']]/*[@class='android.widget.ImageButton']".format(
-                LocalizedButtons.SUBWAY.get())) or \
-                 steps.try_get_by_text(LocalizedButtons.SUBWAY.get()).click()
-        subway.click()
+        subway = steps.try_get_by_text(LocalizedButtons.SUBWAY.get())
+        TouchAction(steps.driver).tap(x=subway.location["x"]+10, y=subway.location["y"]-50).perform()
+        #subway = steps.try_get_by_xpath(
+        #    "//*[@class='android.widget.LinearLayout' and ./*[@text='{}']]/*[@class='android.widget.ImageButton']".format(
+        #        LocalizedButtons.SUBWAY.get())) or \
+        #         steps.try_get_by_text(LocalizedButtons.SUBWAY.get()).click()
+        #subway.click()
         TouchAction(steps.driver).tap(x=100, y=100).perform()
         sleep(10)
         # click to empty space to close

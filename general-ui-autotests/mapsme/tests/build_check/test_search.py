@@ -65,33 +65,4 @@ class TestSearchMapsme:
     def test_search_by_name(self, main, steps, search_steps):
         """https://testrail.corp.mail.ru/index.php?/tests/view/36653558"""
         steps.search(LocalizedMapsNames.LONDON.get())
-        search_steps.assert_title_contains(LocalizedMapsNames.LONDON.get(), 5)
-
-    """def test_search_on_map(self, main, steps, search_steps):
-        steps.click_search_button()
-        steps.choose_category_in_list(LocalizedCategories.WHERE_TO_EAT.get())
-        steps.try_get(LocalizedButtons.SEARCH_IN_THE_MAP.get()).click()
-        filename = "where_to_eat.png"
-        steps.driver.get_screenshot_as_file(filename)
-        pass"""
-
-    def get_coords_proportions(self, filename):
-        img = Image.open(filename)
-        img = img.convert("RGB")
-
-        width, height = img.size
-
-        rg = None
-        n = 1
-
-        for i in range(width):
-            for j in range(height):
-                x = img.getpixel((i, j))
-                if rg != x:
-                    rg = x
-
-                if rg[1] < 60 and rg[2] < 60 and rg[0] > 200:
-                    if i > 200 and j > 100:
-                        if n == number:
-                            return i / width, j / height
-                        n = n + 1
+        search_steps.assert_title_contains(LocalizedMapsNames.LONDON.get(), 3)

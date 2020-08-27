@@ -61,7 +61,7 @@ class AndroidSearchSteps(SearchSteps, AndroidSteps):
                   LocalizedCategories.FLORISTS.get(), LocalizedCategories.CAR_SHOP.get(),
                   LocalizedCategories.TICKET_SHOP.get(), LocalizedCategories.OPTICIAN.get(),
                   LocalizedCategories.BOOKSTORE.get(), LocalizedCategories.LIQUOR_STORE.get(),
-                  LocalizedCategories.GIFT_SHOP.get()]
+                  LocalizedCategories.GIFT_SHOP.get(), LocalizedCategories.VEG_AND_FRUITS.get()]
         for _ in range(3):
             results = [x.text for x in self.driver.find_elements_by_id("description")]
             for res in results:
@@ -117,7 +117,7 @@ class IosSearchSteps(SearchSteps, IosSteps):
                  LocalizedCategories.FLORISTS.get(), LocalizedCategories.CAR_SHOP.get(),
                  LocalizedCategories.TICKET_SHOP.get(), LocalizedCategories.OPTICIAN.get(),
                  LocalizedCategories.BOOKSTORE.get(), LocalizedCategories.LIQUOR_STORE.get(),
-                 LocalizedCategories.GIFT_SHOP.get()]
+                 LocalizedCategories.GIFT_SHOP.get(), LocalizedCategories.VEG_AND_FRUITS.get()]
         results = self.driver.find_elements_by_xpath(
             "//*[@type='XCUIElementTypeTable']/*[@type='XCUIElementTypeCell']")
         for res in results:

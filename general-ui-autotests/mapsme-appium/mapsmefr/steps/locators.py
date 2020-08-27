@@ -117,7 +117,7 @@ class LocalizedButtons(Localized):
     NEXT_KEYBOARD = {"ru": "Следующая клавиатура", "en": "Next keyboard"}
     CLEAR_TEXT = {"ru": "Очистить текст", "en": "Clear text"}
     REMOVE_ADS = {"ru": "Отключить рекламу", "en": "Remove ads"}
-    VEZET = {"ru": "Везет", "en": "Vezet"}
+    VEZET = {"ru": "Яндекс.Такси", "en": "Yandex.Taxi"}
     NEXT = {"ru": "Далее", "en": "Next"}
 
     BOOKMARK_COLOR = {"ru": "Цвет метки", "en": "Bookmark Color"}
@@ -453,6 +453,7 @@ class LocalizedCategories(Localized):
     WHERE_TO_EAT = {"ru": "Где поесть", "en": "Where to eat"}
     THEATRE = {"ru": "Театр", "en": "Theatre"}
     CHURCH = {"ru": "Храм", "en": "Church"}
+    MOUNTAIN = {'ru': "Гора", "en": "Mountain"}
 
     ATTRACTION = {"ru": "Достопримечательность", "en": "Attraction"}
     MUSEUM = {"ru": "Музей", "en": "Museum"}
@@ -485,6 +486,7 @@ class LocalizedCategories(Localized):
     LIQUOR_STORE = {"en": "Liquor Store", "ru": "Магазин алкоголя"}
     BOOKSTORE = {'en': "Bookstore", "ru": "Книжный магазин"}
     GIFT_SHOP = {"en": "Gift Shop", "ru": "Магазин сувениров"}
+    VEG_AND_FRUITS = {"ru": "Овощи и фрукты", "en": "Greengrocer's"}
 
     MALL = {"ru": "Торговый центр", "en": "Mall"}
 

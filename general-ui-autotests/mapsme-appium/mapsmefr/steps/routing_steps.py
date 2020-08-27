@@ -128,7 +128,8 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
             (By.ID, Locator.TAXI_VEZET.get()), (By.ID, LocalizedButtons.TAXI_NOT_FOUND.get()),
             (By.ID, LocalizedButtons.TAXI_NOT_AVAILABLE.get()),
             (By.ID, LocalizedButtons.TAXI_IS_NOT_AVAILABLE_HERE.get()),
-            (By.ID, LocalizedButtons.TAXI.get())))
+            (By.ID, LocalizedButtons.TAXI.get()),
+            (By.ID, LocalizedButtons.INSTALL_BUTTON.get())))
 
     @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
     def wait_metro_panel(self):
