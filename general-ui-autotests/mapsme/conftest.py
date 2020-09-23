@@ -167,7 +167,7 @@ def pytest_runtest_makereport(item, call):
             try:
                 with open("testresult.txt", "r") as f:
                     test_r = f.read()
-    
+
                 params = {"test_result": test_r,
                           "log": "Error:<br> {}".format(log),
                           "file": screencap,

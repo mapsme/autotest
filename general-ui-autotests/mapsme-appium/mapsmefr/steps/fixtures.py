@@ -1,13 +1,14 @@
 import logging
 import subprocess
-from os import system
+from os import system, getenv
 from time import sleep
 
 import pytest
 from mapsmefr.client.appium_check import AppiumServer
 from mapsmefr.client.device import Device
 from mapsmefr.client.test_result import TestResult
-from mapsmefr.steps.base_steps import BaseSteps
+from mapsmefr.steps.base_steps import BaseSteps, BookingSteps
+from mapsmefr.steps.downloader_steps import DownloaderSteps
 from mapsmefr.steps.locators import LocalizedButtons, Locator, LocalizedMapsNames
 from mapsmefr.steps.routing_steps import RoutingSteps
 from mapsmefr.steps.search_steps import SearchSteps
@@ -103,7 +104,7 @@ def driver(request, session):
         set_settings("Android", "locale", locale.split("-")[0])
     else:
         if WebDriverManager.get_instance().device.emulator:
-            locale = b'en_US'
+            locale = b'ru_RU'
         else:
             locale = subprocess.run(["ideviceinfo -u {} -q com.apple.international -k Locale"
                                     .format(WebDriverManager.get_instance().device.udid)],
@@ -199,6 +200,17 @@ def settings_steps(driver):
 def bookmark_steps():
     logging.info("[session] bookmark steps")
     return BookmarkSteps.get()
+
+
+@pytest.fixture(scope="session")
+def downloader_steps():
+    logging.info("[session] downloader steps")
+    return DownloaderSteps.get()
+
+
+@pytest.yield_fixture(scope="session")
+def b_steps():
+    yield BookingSteps.get()
 
 
 @pytest.yield_fixture

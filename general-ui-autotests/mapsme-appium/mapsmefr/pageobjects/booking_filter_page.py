@@ -47,6 +47,9 @@ class SearchFilter:
     def search_button(self):
         return self._instance.search_button()
 
+    def reset_button(self):
+        return self._instance.reset_button()
+
 
 class AndroidSearchFilter:
 
@@ -89,6 +92,9 @@ class AndroidSearchFilter:
     def search_button(self):
         return self._find_by_id("done")
 
+    def reset_button(self):
+        return self._find_by_id("reset")
+
 
 class IosSearchFilter:
 
@@ -128,4 +134,8 @@ class IosSearchFilter:
         return self.driver.find_element_by_id(type_name)
 
     def search_button(self):
-        return self.driver.find_element_by_id(LocalizedButtons.SEARCH_HOTEL_FILTER.get())
+        return self.driver.find_element_by_xpath(
+            "//*[@name='{}' and @type='XCUIElementTypeButton']".format(LocalizedButtons.SEARCH_HOTEL_FILTER.get()))
+
+    def reset_button(self):
+        return self.driver.find_element_by_id(LocalizedButtons.RESET.get())

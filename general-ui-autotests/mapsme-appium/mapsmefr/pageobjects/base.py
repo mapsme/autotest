@@ -9,11 +9,17 @@ class BottomPanel:
 
     def find_button(self, text):
         driver = WebDriverManager.get_instance().driver
-        return driver.find_element_by_xpath(
+        try:
+            return driver.find_element_by_xpath(
             "//*[@text='{}' or @text='{}' or @text='{}']/parent::*".format(text, text.upper(), text.lower()))
+        except NoSuchElementException:
+            return None
 
     def find_button_by_id(self, locator):
-        return WebDriverManager.get_instance().driver.find_element_by_id(locator)
+        try:
+            return WebDriverManager.get_instance().driver.find_element_by_id(locator)
+        except NoSuchElementException:
+            return None
 
     def bookmark(self):
         if get_settings("System", "platform") == "Android":
@@ -23,17 +29,13 @@ class BottomPanel:
 
     def book(self):
         if get_settings("System", "platform") == "Android":
-            book = None
-            try:
-                book = self.find_button(LocalizedButtons.BOOK.get())
-            except NoSuchElementException:
+            book = self.find_button(LocalizedButtons.BOOK.get())
+            if not book:
                 book = self.find_button(LocalizedButtons.BOOKING_COM.get())
             return book
         else:
-            book = None
-            try:
-                book = self.find_button_by_id("ic booking logo")
-            except NoSuchElementException:
+            book = self.find_button_by_id("ic booking logo")
+            if not book:
                 book = self.find_button_by_id("ic booking search")
             return book
 
@@ -73,3 +75,9 @@ class BottomPanel:
 
     def discovery(self):
         return self.find_button_by_id(Locator.DISCOVERY.get())
+
+    def more(self):
+        if get_settings("System", "platform") == "Android":
+            return self.find_button(LocalizedButtons.MORE.get())
+        else:
+            return self.find_button_by_id("ic placepage more")

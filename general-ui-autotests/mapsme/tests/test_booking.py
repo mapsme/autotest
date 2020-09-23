@@ -33,10 +33,6 @@ class TestBookingFullMapsme:
              switch_to_native):
         yield driver_booking
 
-    @pytest.yield_fixture(scope="class")
-    def b_steps(self):
-        yield BookingSteps.get()
-
     @pytest.fixture(scope="class")
     def find_booking_hotels(self):
         host = "https://distribution-xml.booking.com/2.4/json/hotelAvailability"

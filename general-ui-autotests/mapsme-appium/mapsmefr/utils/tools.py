@@ -5,8 +5,6 @@ import random
 import string
 from os.path import join, dirname, realpath
 
-import pytest
-
 
 def get_settings(block, name):
     rootdir = dirname(realpath(__file__)).split('utils')[0]
@@ -39,3 +37,4 @@ def is_element_scrolled(driver, element):
     height = driver.get_window_size()['height']
     min_y = 250 if get_settings("System", "platform") == "Android" else 120
     return y < height - min_y
+

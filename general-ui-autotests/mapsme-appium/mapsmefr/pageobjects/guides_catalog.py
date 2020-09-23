@@ -1,49 +1,19 @@
 from enum import Enum
-from functools import wraps
 
+from mapsmefr.pageobjects.switch import switch
 from mapsmefr.steps.locators import Locator, LocalizedButtons
 from mapsmefr.utils import expected_conditions as EC2
 from mapsmefr.utils.driver import WebDriverManager
 from mapsmefr.utils.tools import get_settings
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.wait import WebDriverWait
 
 
 class GuidesCatalogLocators(Enum):
     GUIDES_CATALOG = {"ru": "Каталог путеводителей", "en": "Guides catalog"}
+    TRY = {"ru": "Попробовать"}
 
     def get(self):
         return self.value[get_settings("Android", "locale")]
-
-
-def switch(context_type):
-    if context_type not in ("native", "web"):
-        raise Exception("Context type must be native or web")
-
-    def switch_wrapper(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if context_type == "native":
-                driver = WebDriverManager.get_instance().driver
-                if driver.context != "NATIVE_APP":
-                    driver.switch_to.context("NATIVE_APP")
-            else:
-                driver = WebDriverManager.get_instance().driver
-                if driver.context == "NATIVE_APP":
-                    try:
-                        WebDriverWait(driver, 20).until(EC2.web_view_context_enabled())
-                        contexts = driver.contexts
-                        cons = [x.split("_")[-1] for x in contexts if x != "NATIVE_APP" and "chrome" not in x]
-                        if len(cons) > 0:
-                            driver.switch_to.context("WEBVIEW_{}".format(cons[-1]))
-                    except TimeoutException:
-                        pass
-
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    return switch_wrapper
 
 
 class GuidesCatalog:
@@ -120,3 +90,34 @@ class GuidesCatalog:
                 return self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeTextField']")[1]
             else:
                 return self.driver.find_elements_by_xpath("//*[@class='android.widget.EditText']")[1]
+
+    @switch("web")
+    def try_subscription(self):
+        if self.driver.context != "NATIVE_APP":
+            if self.driver.find_element_by_xpath("(//span[text()='{}'])".format(GuidesCatalogLocators.TRY.get())):
+                self.driver.switch_to.context("NATIVE_APP")
+                return self.driver.find_element_by_xpath("//*[@type='XCUIElementTypeLink']")
+            return self.driver.find_element_by_xpath("(//span[text()='{}'])|(//*[@class='billboard__image'])"
+                                                     .format(GuidesCatalogLocators.TRY.get()))
+        else:
+            pass
+
+    @switch("web")
+    def search_result_dropdown(self, name):
+        if self.driver.context != "NATIVE_APP":
+            return self.driver.find_element_by_xpath(
+                "//span[@class='input__item-name-inner' and text()='{}']".format(name))
+        else:
+            pass
+
+    @switch("web")
+    def clear_search(self):
+        if self.driver.context != "NATIVE_APP":
+            return self.driver.find_element_by_xpath("//*[contains(@class,'input__action')]")
+        else:
+            pass
+
+    @switch("web")
+    def subscribe_result_banner(self):
+        if self.driver.context != "NATIVE_APP":
+            return self.driver.find_element_by_xpath("//a[contains(@href, 'subscribe')]")
