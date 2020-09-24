@@ -61,8 +61,8 @@ class TestSearchMapsme:
         steps.search("shop")
         search_steps.assert_shops_list()
 
-    @pytest.mark.name("[Search] Поиск по названию (Лондон)")
+    @pytest.mark.name("[Search] Поиск по названию (Нью-Йорк)")
     def test_search_by_name(self, main, steps, search_steps):
         """https://testrail.corp.mail.ru/index.php?/tests/view/36653558"""
-        steps.search(LocalizedMapsNames.LONDON.get())
-        search_steps.assert_title_contains(LocalizedMapsNames.LONDON.get(), 3)
+        steps.search(LocalizedMapsNames.NEWYORK.get())
+        search_steps.assert_title_contains(LocalizedMapsNames.NEWYORK.get(), 3)

@@ -126,7 +126,8 @@ class IosSearchSteps(SearchSteps, IosSteps):
             logging.info(text)
             assert text in shops
 
+
     def assert_title_contains(self, title, limit=5):
         results = WebDriverManager.get_instance().driver.find_elements_by_id(Locator.TITLE.get())[:limit]
         for res in results:
-            assert title.lower() in res.text.lower()
+            assert title.lower() in res.text.lower(), "Search result should contain {}".format(title)

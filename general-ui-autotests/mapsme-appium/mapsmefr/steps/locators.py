@@ -435,7 +435,7 @@ class LocalizedMapsNames(Localized):
     PRAGUE = {"ru": "Прага", "en": "Prague"}
     LONDON = {"ru": "Лондон", "en": "London"}
     AMSTERDAM = {"ru": "Амстердам", "en": "Amsterdam"}
-    NEWYORK = {"ru": "New York", "en": "New York"}
+    NEWYORK = {"ru": "Нью-Йорк", "en": "New York"}
     BERLIN = {"ru": "Берлин", "en": "Berlin"}
     PORTO = {"ru": "Порту", "en": "Porto"}
 
