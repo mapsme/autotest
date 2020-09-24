@@ -17,6 +17,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 
 @pytest.mark.regress1
+@pytest.mark.routing
 class TestRoutingMapsme:
 
     @pytest.fixture
