@@ -133,6 +133,7 @@ class TestDownloadMapsme:
         steps.assert_map_deleted(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.ALTAI_KRAI)
         steps.assert_map_deleted(None, None, LocalizedMapsNames.NORTH_KOREA)
 
+    @pytest.mark.name("[Download maps] Проверка наличия информации по mwm: название, размер, описание")
     def test_downloader_ui(self, main, steps, downloader_steps):
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.VORONEZH)
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.MOSCOW)
@@ -150,6 +151,7 @@ class TestDownloadMapsme:
 
         assert not steps.try_get("onmap_downloader")
 
+    @pytest.mark.name("[Download maps] Загрузка целой страны с несколькими mwm")
     def test_download_country_several_mwm(self, main, steps, downloader_steps):
         steps.delete_map(None, None, LocalizedMapsNames.IRELAND)
         steps.download_map(None, None, LocalizedMapsNames.IRELAND)  # TODO не скачивается??
@@ -159,7 +161,7 @@ class TestDownloadMapsme:
         downloader_steps.assert_size_and_sublocations(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.MUNSTER)
         downloader_steps.assert_size_and_sublocations(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.ULSTER)
 
-    @pytest.mark.androidonly
+    @pytest.mark.name("[Download maps] Проверка кнопки Загрузить все")
     def test_download_all_button(self, main, steps, downloader_steps):
         steps.delete_map(None, None, LocalizedMapsNames.IRELAND)
         steps.download_map(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.DUBLIN)
@@ -178,6 +180,7 @@ class TestDownloadMapsme:
         steps.try_get(Locator.DOWNLOAD_MAPS.get()).click()
         assert (None, None) == steps.try_find_map_with_scroll(LocalizedMapsNames.IRELAND.get())
 
+    @pytest.mark.name("[Download maps] Проверка отмены загрузки всех карт")
     def test_cancel_download_all(self, main, steps, downloader_steps):
         steps.delete_map(None, None, LocalizedMapsNames.RUSSIA)
         steps.search(LocalizedMapsNames.MOSCOW.get())
