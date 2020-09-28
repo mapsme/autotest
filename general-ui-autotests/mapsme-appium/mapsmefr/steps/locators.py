@@ -490,7 +490,7 @@ class LocalizedCategories(Localized):
 
     MALL = {"ru": "Торговый центр", "en": "Mall"}
 
-    BURGER = {"en": "Burger"}
+    BURGER = {"en": "Burger", "ru": "Бургеры"}
     ARAB_CUISINE = {"en": "Arab", "ru": "Арабская кухня"}
 
 
