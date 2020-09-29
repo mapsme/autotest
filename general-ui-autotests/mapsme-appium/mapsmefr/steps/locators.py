@@ -488,6 +488,7 @@ class LocalizedCategories(Localized):
     GIFT_SHOP = {"en": "Gift Shop", "ru": "Магазин сувениров"}
     VEG_AND_FRUITS = {"ru": "Овощи и фрукты", "en": "Greengrocer's"}
     ELECTRONICS = {"ru": "Электротехника", "en": "Electronics"}
+    BAKERY = {"ru": "Булочная", "en": "Bakery"}
 
     MALL = {"ru": "Торговый центр", "en": "Mall"}
 
