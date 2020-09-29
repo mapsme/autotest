@@ -492,6 +492,7 @@ class LocalizedCategories(Localized):
     WINE_SHOP = {"ru": "Винный магазин", "en": "Wine Shop"}
     BUTCHERS = {'ru': "Мясная лавка", "en": "Butcher's"}
     HAIRDRESSER = {"ru": "Парикмахерская", "en": "Hairdresser"}
+    HARDWARE_STORE = {"ru": "Хозяйственный", "en": "Hardware Store"}
 
     MALL = {"ru": "Торговый центр", "en": "Mall"}
 
