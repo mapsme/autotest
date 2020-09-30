@@ -134,13 +134,16 @@ class IosRoutingSteps(RoutingSteps, IosSteps):
     @screenshotwrap("Проверить, что построился маршрут метро", two_screenshots=False)
     def wait_metro_panel(self):
         WebDriverWait(self.driver, 180).until(EC2.element_to_be_dissapeared((By.ID, Locator.ROUTING_METRO.get())))
-        if WebDriverManager.get_instance().device.platform_version >= "13":
+        els = self.driver.find_elements_by_xpath(
+            "//*[@type='XCUIElementTypeCollectionView']/*[@type='XCUIElementTypeCell']")
+        assert len(els) >= 1
+        """if WebDriverManager.get_instance().device.platform_version >= "13":
             els = self.driver.find_elements_by_xpath(
                 "//*[@type='XCUIElementTypeCollectionView']/*[@type='XCUIElementTypeCell']")
             assert len(els) >= 1
         else:
             WebDriverWait(self.driver, 180).until(
-                EC.presence_of_element_located((By.ID, Locator.ROUTE_METRO.get())))
+                EC.presence_of_element_located((By.ID, Locator.ROUTE_METRO.get())))"""
 
     @screenshotwrap("Дождаться загрузки дополнительных карт, если она нужна.")
     def download_additional_maps(self):
