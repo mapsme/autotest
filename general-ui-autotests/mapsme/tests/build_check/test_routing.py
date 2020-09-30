@@ -612,19 +612,24 @@ class TestRoutingMapsme:
         if el:
             el.click()
 
+        r_steps.wait_route_start()
+
         steps.search("метро Сокол")
         steps.choose_first_search_result()
 
         panel.add_stop().click()
+        r_steps.wait_route_start()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
 
         panel.add_stop().click()
+        r_steps.wait_route_start()
 
         steps.search("метро Тульская")
         steps.choose_first_search_result()
         panel.add_stop().click()
+        r_steps.wait_route_start()
 
         steps.search("метро Сокольники")
         steps.choose_first_search_result()
@@ -644,17 +649,19 @@ class TestRoutingMapsme:
             el.click()
 
         steps.try_get(Locator.ROUTING_WALK.get()).click()
+        r_steps.wait_route_start()
 
         steps.search("метро Сокол")
         steps.choose_first_search_result()
 
         panel.add_stop().click()
-        sleep(5)
+        r_steps.wait_route_start()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
 
         panel.add_stop().click()
+        r_steps.wait_route_start()
 
         steps.search("метро Тульская")
         steps.choose_first_search_result()
@@ -679,21 +686,24 @@ class TestRoutingMapsme:
             el.click()
 
         steps.try_get(Locator.ROUTING_BIKE.get()).click()
+        r_steps.wait_route_start()
 
         steps.search("метро Сокол")
         steps.choose_first_search_result()
 
         panel.add_stop().click()
-        sleep(10)
+        r_steps.wait_route_start()
 
         steps.search("метро Беляево")
         steps.choose_first_search_result()
 
         panel.add_stop().click()
+        r_steps.wait_route_start()
 
         steps.search("метро Тульская")
         steps.choose_first_search_result()
         panel.add_stop().click()
+        r_steps.wait_route_start()
 
         r_steps.wait_route_start()
 
@@ -721,7 +731,7 @@ class TestRoutingMapsme:
 
         steps.press_back_until_main_page()
         steps.search("Compton Park")
-        sleep(5)
+        sleep(10)
         steps.choose_first_search_result(category=LocalizedCategories.PARK.get())
 
         panel.route_from().click()
@@ -924,7 +934,7 @@ class TestRoutingMapsme:
         assert self.assert_get_coords_subway(filename, False)
 
         steps.search(LocalizedMapsNames.CHELYABINSK.get())
-        steps.choose_first_search_result(category=LocalizedCategories.CAPITAL.get())
+        steps.choose_first_search_result(category=LocalizedCategories.CITY.get())
         steps.press_back_until_main_page()
         steps.try_get(Locator.ZOOM_IN.get()).click()
         steps.try_get(Locator.MAP_LAYERS.get()).click()
