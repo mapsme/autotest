@@ -938,6 +938,7 @@ class TestRoutingMapsme:
         steps.press_back_until_main_page()
         steps.try_get(Locator.ZOOM_IN.get()).click()
         steps.try_get(Locator.MAP_LAYERS.get()).click()
+        sleep(5)
         subway = steps.try_get_by_xpath(
             "//*[@class='android.widget.LinearLayout' and ./*[@text='{}']]/*[@class='android.widget.ImageButton']".format(
                 LocalizedButtons.SUBWAY.get())) or \
