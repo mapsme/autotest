@@ -210,7 +210,9 @@ node('naboo') {
         def passed = total - failed - skipped
         def session = readFile encoding: 'utf-8', file: "general-ui-autotests/session.txt"
         def body = "Tests result <br> Total: ${total}, Passed: ${passed}, Failed: ${failed}, Skipped: ${skipped} <br>\tSee result: ${session}"
+        rec = 'k.kravchuk@mapswithme.com'
+        if (email != "") rec = rec + "," + email
         emailext mimeType: 'text/html', body: body, subject: "Test result ${env['JOB_NAME']} #${currentBuild.number}",
-                 to: 'k.kravchuk@mapswithme.com'
+                 to: email
     }
 }
