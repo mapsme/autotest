@@ -911,6 +911,7 @@ class TestRoutingMapsme:
         sleep(1)
         assert self.assert_get_coords_subway(filename, False)
         steps.try_get(Locator.MAP_LAYERS.get()).click()
+        logging.info(steps.driver.page_source)
         subway = steps.try_get_by_text(LocalizedButtons.SUBWAY.get())
         TouchAction(steps.driver).tap(x=subway.location["x"]+10, y=subway.location["y"]-50).perform()
         #subway = steps.try_get_by_xpath(
