@@ -939,12 +939,10 @@ class TestRoutingMapsme:
         steps.try_get(Locator.ZOOM_IN.get()).click()
         steps.try_get(Locator.MAP_LAYERS.get()).click()
         sleep(5)
-        subway = steps.try_get_by_xpath(
-            "//*[@class='android.widget.LinearLayout' and ./*[@text='{}']]/*[@class='android.widget.ImageButton']".format(
-                LocalizedButtons.SUBWAY.get())) or \
-                 steps.try_get_by_text(LocalizedButtons.SUBWAY.get()).click()
-        subway.click()
-        assert steps.try_get_by_text("Subway map is unavailable")  # Subway map is unavailable Карта метро недоступна
+        subway = steps.try_get_by_text(LocalizedButtons.SUBWAY.get())
+        TouchAction(steps.driver).tap(x=subway.location["x"]+10, y=subway.location["y"]-50).perform()
+
+        assert steps.try_get_by_text(LocalizedButtons.SUBWAY_UNAVAILABLE.get())
         subway.click()
         TouchAction(steps.driver).tap(x=100, y=100).perform()
 
@@ -975,8 +973,9 @@ class TestRoutingMapsme:
                     if rg[0] > 200 and rg[0] < 210 and rg[1] > 220 and rg[1] < 230 and rg[2] > 120 and rg[2] < 130:
                         light_green = True
 
-                    if rg[0] > 20 and rg[0] < 35 and rg[1] > 70 and rg[1] < 90 and rg[2] > 180 and rg[2] < 205:
+                    if rg[0] > 20 and rg[0] < 30 and rg[1] > 100 and rg[1] < 115 and rg[2] > 140 and rg[2] < 160:
                         blue = True
+                        logging.info("blue: {}".format(x))
 
                     if rg[0] > 195 and rg[0] < 205 and rg[1] > 65 and rg[1] < 75 and rg[2] > 180 and rg[2] < 190:
                         logging.info("purple: {}".format(x))

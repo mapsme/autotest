@@ -194,7 +194,7 @@ class LocalizedButtons(Localized):
     DEFINE_ROADS = {"en": "DEFINE ROADS TO AVOID", "ru": "НАСТРОИТЬ ПУТИ ОБЪЕЗДА"}
     RESET = {"en": "Reset", "ru": "Сбросить"}
     SUBWAY = {"ru": "Метро", "en": "Subway"}
-
+    SUBWAY_UNAVAILABLE = {"ru": "Карта метро недоступна", "en": "Subway map is unavailable"}
 
 
 class BookingButtons(Localized):
