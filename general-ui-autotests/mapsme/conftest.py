@@ -176,7 +176,7 @@ def pytest_runtest_makereport(item, call):
                           "before": True}
                 resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
             except FileNotFoundError:
-                pass
+                logging.info("TESTRESULT.TXT is NOT FOUND")
 
             extra.append(pytest_html.extras.image(item.name + ".png"))
         rep.extra = extra
