@@ -14,6 +14,7 @@ from selenium.common.exceptions import WebDriverException
 
 
 @pytest.mark.regress1
+@pytest.mark.pp
 class TestPlacePageMapsme:
 
     @pytest.fixture
