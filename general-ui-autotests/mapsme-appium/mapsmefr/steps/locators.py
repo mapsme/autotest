@@ -171,7 +171,7 @@ class LocalizedButtons(Localized):
     WHY_SUPPORT = {"ru": "Зачем поддерживать MAPS.ME?", "en": "Why support MAPS.ME?"}
     WE_WILL_REMOVE_ADS = {"ru": "Мы отключим для вас всю рекламу", "en": "We will remove all ads for you"}
     YOU_HELP_US_TO_IMPROVE = {"ru": "Вы помогаете нам улучшать MAPS.ME", "en": "You help us to improve MAPS.ME"}
-    HELP_IMPROVE_OSM = {"ru": "Вы помогаете нам улучшать карты OpenStreetMaps.org",
+    HELP_IMPROVE_OSM = {"ru": "Вы помогаете нам улучшать карты OpenStreetMap.org",
                         "en": "You help us improve open maps OpenStreetMap.org"}
     DOWNLOAD_GUIDES = {"en": "SEARCH GUIDES", "ru": "НАЙТИ ПУТЕВОДИТЕЛИ"}
     GET_DIRECT_LINK = {"en": "Upload and get a direct link", "ru": "Загрузить и получить ссылку"}
