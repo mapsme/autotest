@@ -1,3 +1,4 @@
+import logging
 import re
 from time import sleep
 
@@ -209,6 +210,7 @@ class TestPlacePageMapsme:
         assert steps.try_get_by_text(LocalizedButtons.WHY_SUPPORT.get())
         assert steps.try_get_by_text(LocalizedButtons.WE_WILL_REMOVE_ADS.get())
         assert steps.try_get_by_text(LocalizedButtons.YOU_HELP_US_TO_IMPROVE.get())
+        logging.info(steps.driver.page_source)
         assert steps.try_get_by_text(LocalizedButtons.HELP_IMPROVE_OSM.get())
 
         steps.try_get("ic ads remove close").click()
