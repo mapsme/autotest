@@ -150,7 +150,7 @@ class TestPlacePageMapsme:
     @pytest.mark.name("[Place Page][Ads] Проверка рекламы на PP")
     def test_ad_banner(self, main, steps, settings_steps):
         steps.search(LocalizedMapsNames.CHELYABINSK.get())
-        steps.choose_first_search_result(category=LocalizedCategories.CAPITAL.get())
+        steps.choose_first_search_result(category=LocalizedCategories.CITY.get())
         steps.assert_catalog_promo(no=True)
         assert steps.try_get(Locator.AD_BANNER.get())
         assert steps.try_get(Locator.AD_CLOSE.get())

@@ -850,10 +850,10 @@ class IosSteps(BaseSteps):
     @check_not_crash
     @screenshotwrap(stepname="Проверка значения на PP", two_screenshots=False)
     def assert_pp(self, text):
-        assert self.driver.find_element_by_id(text)
+        assert text in self.try_get(Locator.TITLE.get()).text
 
     def assert_category_on_pp(self, text):
-        assert self.try_get_by_xpath("//*[contains(@name, '{}')]".format(text))
+        assert text in self.try_get("searchType").text
 
     @check_not_crash
     def press_back_until_main_page(self):
@@ -910,6 +910,8 @@ class IosSteps(BaseSteps):
                         self.scroll_up(from_el=el)
 
         timeout = time.time() + 40  # 40s from now
+
+        self._press_back_all(LocalizedButtons.CANCEL.get(), LocalizedButtons.CANCELLATION.get())
 
         while not self.try_get(Locator.MENU_BUTTON.get()):
             self.driver.back()

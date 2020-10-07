@@ -186,7 +186,7 @@ class LocalizedButtons(Localized):
     CATEGORY = {"en": "Category"}
     OSM = {"en": "OpenStreetMap", "ru": "OpenStreetMap"}
     LOG_IN_BTN = {"en": "Log In"}
-    VLADIMIR_VELIKI = {"ru": "Владимир Великий", "en": "Vladimir Velikiy"}
+    VLADIMIR_VELIKI = {"ru": "Владимиру Великому", "en": "Vladimir Velikiy"}
     VLADIMIR_MEMORIAL_DESCRIPTION = {"ru": "Памятник великому князю Киевскому Владимиру",
                                      "en": "The Monument to Vladimir the Great"}
     VIEW = {"en": "View", "ru": "Посмотреть"}

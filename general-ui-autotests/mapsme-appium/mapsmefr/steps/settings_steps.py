@@ -254,18 +254,22 @@ class IosSettingsSteps(SettingsSteps):
         timeout = time.time() + 60
         if alt:
             switch = self.try_get_by_xpath(
-                "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt))
+                "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[(@name='{}' or @name='{}')]]/*[@type='XCUIElementTypeSwitch']".format(name, alt))
             while not (switch and switch.get_attribute("visible") == "true"):
                 self.scroll_down()
                 switch = self.try_get_by_xpath(
-                    "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt))
+                    "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[(@name='{}' or @name='{}')]]/*[@type='XCUIElementTypeSwitch']".format(name, alt))
                 if time.time() > timeout:
                     break
         else:
-            switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name))
+            switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@type='XCUIElementTypeSwitch']".format(name))
             while not (switch and switch.get_attribute("visible") == "true"):
                 self.scroll_down()
-                switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name))
+                switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@type='XCUIElementTypeSwitch']".format(name))
                 if time.time() > timeout:
                     break
 
@@ -361,18 +365,28 @@ class IosSettingsSteps(SettingsSteps):
         timeout = time.time() + 60
         if alt:
             switch = self.try_get_by_xpath(
-                "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt))
+                "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[(@name='{}' or @name='{}')]]/*[@type='XCUIElementTypeSwitch']".format(
+                        name, alt))
             while not (switch and switch.get_attribute("visible") == "true"):
                 self.scroll_down()
                 switch = self.try_get_by_xpath(
-                    "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name, alt))
+                    "//*[@type='XCUIElementTypeSwitch' and (@name='{}' or @name='{}')]".format(name,
+                                                                                               alt)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[(@name='{}' or @name='{}')]]/*[@type='XCUIElementTypeSwitch']".format(
+                        name, alt))
                 if time.time() > timeout:
                     break
         else:
-            switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name))
+            switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@type='XCUIElementTypeSwitch']".format(
+                        name))
             while not (switch and switch.get_attribute("visible") == "true"):
                 self.scroll_down()
-                switch = self.try_get_by_xpath("//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name))
+                switch = self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeSwitch' and @name='{}']".format(name)) or self.try_get_by_xpath(
+                    "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@type='XCUIElementTypeSwitch']".format(
+                        name))
                 if time.time() > timeout:
                     break
 
