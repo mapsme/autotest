@@ -98,12 +98,12 @@ class TestPlacePageMapsme:
         steps.try_get_by_text(LocalizedButtons.DETAILS.get()).click()
         assert GuidesCatalog().navigation_bar_title()
 
-        steps.press_back_until_main_page()
-        steps.search(LocalizedMapsNames.CHELYABINSK.get())
-        steps.choose_first_search_result(category=LocalizedCategories.CAPITAL.get())
+        """steps.press_back_until_main_page()
+        steps.search("Воронеж")
+        steps.choose_first_search_result(category=LocalizedCategories.CITY.get())
         steps.scroll_down()
         steps.assert_catalog_promo(no=True)
-        assert steps.try_get(Locator.AD_BANNER.get())
+        assert steps.try_get(Locator.AD_BANNER.get())"""
 
     @pytest.mark.name("[Place Page] Проверка отображения гидов и рекламы на PP достопримечательностей")
     def test_pp_sight_guides(self, main, steps, bookmark_steps):
@@ -150,6 +150,8 @@ class TestPlacePageMapsme:
     @pytest.mark.name("[Place Page][Ads] Проверка рекламы на PP")
     def test_ad_banner(self, main, steps, settings_steps):
         steps.search(LocalizedMapsNames.CHELYABINSK.get())
+        steps.driver.hide_keyboard()
+        sleep(2)
         steps.choose_first_search_result(category=LocalizedCategories.CITY.get())
         steps.assert_catalog_promo(no=True)
         assert steps.try_get(Locator.AD_BANNER.get())
