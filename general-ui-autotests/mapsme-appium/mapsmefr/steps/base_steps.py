@@ -850,10 +850,10 @@ class IosSteps(BaseSteps):
     @check_not_crash
     @screenshotwrap(stepname="Проверка значения на PP", two_screenshots=False)
     def assert_pp(self, text):
-        assert text in self.try_get(Locator.TITLE.get()).text
+        assert text in self.try_get(Locator.TITLE.get()).text or self.driver.find_element_by_id(text)
 
     def assert_category_on_pp(self, text):
-        assert text in self.try_get("searchType").text
+        assert text in self.try_get("searchType").text or self.try_get_by_xpath("//*[contains(@name, '{}')]".format(text))
 
     @check_not_crash
     def press_back_until_main_page(self):
