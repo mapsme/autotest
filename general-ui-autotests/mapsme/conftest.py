@@ -160,7 +160,11 @@ def pytest_runtest_makereport(item, call):
             filename = join(path, item.name + ".png")
             screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
             image_64_decode = base64.b64decode(screencap)
-            log = "<br>".join([rep.longrepr.reprcrash.message] + rep.longrepr.reprtraceback.reprentries[0].lines)
+            try:
+                log = "<br>".join([rep.longrepr.reprcrash.message] + rep.longrepr.reprtraceback.reprentries[0].lines)
+            except:
+                logging.info("LOG ERROR")
+                log = "error"
             with open(filename, 'wb') as ff:
                 ff.write(image_64_decode)
             test_r = None

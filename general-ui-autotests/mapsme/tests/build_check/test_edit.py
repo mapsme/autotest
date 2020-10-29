@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 @pytest.mark.build_check
 @pytest.mark.edit
+@pytest.mark.regress1
 class TestEditMapsme:
 
     @pytest.fixture

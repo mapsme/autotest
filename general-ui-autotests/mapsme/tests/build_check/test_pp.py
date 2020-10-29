@@ -44,7 +44,7 @@ class TestPlacePageMapsme:
         #    pytest.fail("Кнопка download не в экшен баре, а на PP")
         steps.delete_map(LocalizedMapsNames.GREAT_BRITAIN, None, LocalizedMapsNames.LONDON)
         steps.search("Big Ben")
-        steps.choose_first_search_result()
+        steps.choose_first_search_result(category=LocalizedCategories.SIGHTS.get())
         steps.assert_buttons_order(LocalizedButtons.BOOKMARK.get(), LocalizedButtons.FROM.get(),
                                    LocalizedButtons.TO.get(), LocalizedButtons.SHARE_BOOKMARK.get())
 
@@ -210,7 +210,6 @@ class TestPlacePageMapsme:
         assert steps.try_get_by_text(LocalizedButtons.WHY_SUPPORT.get())
         assert steps.try_get_by_text(LocalizedButtons.WE_WILL_REMOVE_ADS.get())
         assert steps.try_get_by_text(LocalizedButtons.YOU_HELP_US_TO_IMPROVE.get())
-        logging.info(steps.driver.page_source)
         assert steps.try_get_by_text(LocalizedButtons.HELP_IMPROVE_OSM.get())
 
         steps.try_get("ic ads remove close").click()

@@ -7,12 +7,16 @@ from appium.webdriver.common.touch_action import TouchAction
 from mapsmefr.steps.locators import LocalizedMapsNames, Locator, LocalizedCategories, LocalizedButtons
 from mapsmefr.utils.tools import get_settings
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from mapsmefr.utils import expected_conditions as EC2
 
 
 @pytest.mark.build_check
 @pytest.mark.downloadmap
+@pytest.mark.regress1
+@pytest.mark.night
 class TestDownloadMapsme:
 
     @pytest.fixture
@@ -126,6 +130,7 @@ class TestDownloadMapsme:
     def test_delete_from_my_maps(self, main, steps):
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.ALTAI_KRAI)
         steps.download_map(None, None, LocalizedMapsNames.NORTH_KOREA)
+        steps.download_map(None, None, LocalizedMapsNames.ANDORRA) #TODO delete
 
         steps.delete_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.ALTAI_KRAI)
         steps.delete_map(None, None, LocalizedMapsNames.NORTH_KOREA)
@@ -168,24 +173,26 @@ class TestDownloadMapsme:
         downloader_steps.go_to_map(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.LEINSTER)
         steps.try_get(Locator.PLUS_DOWNLOADER_BUTTON.get()).click()
         assert steps.try_get(Locator.DOWNLOAD_ALL.get())
-        download_all = steps.try_get(Locator.DOWNLOAD_ALL.get())
+        #logging.info(steps.driver.page_source) #TODO
+        download_all = steps.try_get("Скачать")
         download_all.click()
-        WebDriverWait(steps.driver, 60).until(EC.staleness_of(download_all))
+        WebDriverWait(steps.driver, 60).until(EC2.element_to_be_dissapeared((By.ID, Locator.DOWNLOAD_ALL.get())))
         steps.press_back_until_main_page()
         downloader_steps.assert_size_and_sublocations(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.CONNACHT)
         downloader_steps.assert_size_and_sublocations(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.MUNSTER)
         downloader_steps.assert_size_and_sublocations(LocalizedMapsNames.IRELAND, None, LocalizedMapsNames.ULSTER)
         steps.delete_map(None, None, LocalizedMapsNames.IRELAND)
-        steps.try_get(Locator.MENU_BUTTON.get()).click()
-        steps.try_get(Locator.DOWNLOAD_MAPS.get()).click()
-        assert (None, None) == steps.try_find_map_with_scroll(LocalizedMapsNames.IRELAND.get())
+        steps.go_to_maps()
+        assert steps.try_get_by_text(LocalizedMapsNames.IRELAND.get()) is None
 
+    @pytest.mark.skip(reason="Clean iphone")
     @pytest.mark.name("[Download maps] Проверка отмены загрузки всех карт")
     def test_cancel_download_all(self, main, steps, downloader_steps):
         steps.delete_map(None, None, LocalizedMapsNames.RUSSIA)
-        steps.search(LocalizedMapsNames.MOSCOW.get())
-        steps.choose_first_search_result()
-        steps.download_map_from_pp()
+        #steps.search(LocalizedMapsNames.MOSCOW.get())
+        #steps.choose_first_search_result()
+        #steps.download_map_from_pp()
+        steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.MOSCOW)
         steps.press_back_until_main_page()
         if get_settings("System", "platform") == "Android":
             self.cancel_download_for_android(steps)
@@ -227,8 +234,12 @@ class TestDownloadMapsme:
         sleep(1)
         steps.driver.find_element_by_id(LocalizedButtons.DOWNLOAD_MAPS.get()).click()
         russia, num = steps.try_find_map_with_scroll(LocalizedMapsNames.RUSSIA)
-        TouchAction(steps.driver).long_press(steps.driver.find_elements_by_id(Locator.FOLDER_ICON.get())[
-                                                 num], duration=2000).wait(500).release().perform()
+
+        check = steps.try_get_by_xpath(
+            "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@name='{}' or @name='{}']".format(LocalizedMapsNames.RUSSIA.get(),
+                                                                                                      Locator.FOLDER_ICON.get(),
+                                                                                                      Locator.DOWNLOADED_ICON.get()))
+        TouchAction(steps.driver).long_press(check, duration=2000).wait(500).release().perform()
         up = "ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
         low = "abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
         steps.try_get_by_xpath(

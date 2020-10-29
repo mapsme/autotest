@@ -15,6 +15,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 @pytest.mark.build_check
 @pytest.mark.deeplinks
 @pytest.mark.releaseonly
+@pytest.mark.regress1
 class TestDeepLinksWithApp:
 
     @pytest.fixture

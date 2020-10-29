@@ -3,6 +3,7 @@ from time import time, sleep
 
 from appium.webdriver.common.touch_action import TouchAction
 from mapsmefr.pageobjects.base import BottomPanel
+from mapsmefr.pageobjects.guides_catalog import GuidesCatalog
 from mapsmefr.steps.base_steps import AndroidSteps, IosSteps, check_not_crash, BaseSteps, screenshotwrap
 from mapsmefr.steps.locators import Locator, LocalizedButtons, LocalizedSettings
 from mapsmefr.utils.driver import WebDriverManager
@@ -47,6 +48,10 @@ class BookmarkSteps(BaseSteps):
 
     def try_find_bookmark_with_scroll(self, bookmark_name):
         pass
+
+    @screenshotwrap("Проверить, что открылась страница каталога")
+    def assert_guides_page_navbar(self):
+        assert GuidesCatalog().navigation_bar_title()
 
 
 class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
@@ -287,16 +292,20 @@ class AndroidBookmarkSteps(BookmarkSteps, AndroidSteps):
 
 class IosBookmarkSteps(BookmarkSteps, IosSteps):
 
+    @screenshotwrap("Нажать кнопку Найти путеводители")
     def click_download_guides(self):
         self.driver.find_elements_by_xpath("//*[@name='{}']".format(Locator.DOWNLOAD_GUIDES.get()))[1].click()
 
+    @screenshotwrap("Проверить, что в метках присутствует секция")
     def assert_section(self, section):
         assert self.try_get(section)
 
+    @screenshotwrap("Ввести значение в поиск по меткам")
     def search_in_bookmarks(self, value):
         self.try_get(Locator.BOOKMARKS_SEARCH.get()).send_keys(value)
         self.driver.hide_keyboard()
 
+    @screenshotwrap("Нажать Сортировать")
     def click_sort(self):
         self.try_get_by_text(LocalizedButtons.BOOKMARKS_SORT.get(), strict=False).click()
 
@@ -378,6 +387,7 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
     def get_bookmark_group_name(self):
         return self.try_get_by_xpath("//*[@type='XCUIElementTypeCell'][3]/*[@type='XCUIElementTypeStaticText']").text
 
+    @screenshotwrap("Удалить все группы меток, кроме Мои метки")
     def delete_all_groups(self):
         self.press_back_until_main_page()
         self.click_bookmarks()
@@ -541,3 +551,4 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
                 pass
 
         sleep(5)
+

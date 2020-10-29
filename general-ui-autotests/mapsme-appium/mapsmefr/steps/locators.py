@@ -357,7 +357,7 @@ class Locator(Enum):
     BOOKMARKS_SEARCH = {'Android': "bookmarks_search", "IOS": LocalizedButtons.SEARCH_IN_THE_LIST}
 
     PLUS_DOWNLOADER_BUTTON = {"Android": "fab", "IOS": "ic nav bar add"}
-    DOWNLOAD_ALL = {"Android": "action", "IOS": LocalizedButtons.DOWNLOAD_ALL_BUTTON}
+    DOWNLOAD_ALL = {"Android": "action", "IOS": "ic_download_all"}
     SUMMARY = {"Android": "summary"}
 
     PP_SUBTITLE = {"Android": "tv__subtitle"}
@@ -493,6 +493,9 @@ class LocalizedCategories(Localized):
     BUTCHERS = {'ru': "Мясная лавка", "en": "Butcher's"}
     HAIRDRESSER = {"ru": "Парикмахерская", "en": "Hairdresser"}
     HARDWARE_STORE = {"ru": "Хозяйственный", "en": "Hardware Store"}
+    SWEETS = {"ru": "Кондитерская", "en": "Sweets"}
+    PETSHOP = {"ru":"Зоотовары", "en": "Petshop"}
+    SHOE_STORE = {"ru": "Магазин обуви", "en": "Shoe Store"}
 
     MALL = {"ru": "Торговый центр", "en": "Mall"}
 

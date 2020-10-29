@@ -5,6 +5,7 @@ from mapsmefr.steps.locators import LocalizedMapsNames, LocalizedCategories, Loc
 
 @pytest.mark.regress1
 @pytest.mark.search
+@pytest.mark.night
 class TestSearchMapsme:
 
     @pytest.fixture

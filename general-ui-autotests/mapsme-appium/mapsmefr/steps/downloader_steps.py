@@ -88,13 +88,14 @@ class IosDownloaderSteps(DownloaderSteps, IosSteps):
                         sleep(1)
                         state.click()
         city, _ = self.try_find_map_with_scroll(loc_name)
+
         els = self.driver.find_elements_by_xpath(
             "//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]//*[@type='XCUIElementTypeStaticText']".format(
                 loc_name.get()))
         subtitle = els[1].text if len(els) == 4 else ""
         assert len(subtitle.split(",")) <= 3
 
-        size = els[2] if len(els) == 4 else els[1]
+        size = els[2] if len(els) == 4 or len(els) == 3 else els[1]
 
         assert "МБ" in size.text or "MB" in size.text
 

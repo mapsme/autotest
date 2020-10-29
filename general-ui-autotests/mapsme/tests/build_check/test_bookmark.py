@@ -12,6 +12,7 @@ from mapsmefr.utils.tools import get_random_string, get_settings
 
 @pytest.mark.bookmark
 @pytest.mark.regress1
+@pytest.mark.night
 class TestBookmarkMapsme:
 
     @pytest.fixture
@@ -32,7 +33,6 @@ class TestBookmarkMapsme:
     def test_bookmark_add(self, main, download_moscow_map, steps, bookmark_steps):
         """1. Проверка возможности поставить метку
            2. Проверка отображения кнопки редактирования метки PP"""
-        panel = BottomPanel()
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), "проспект Мира, 78")
         steps.search("Проспект Мира 78")
         steps.choose_first_search_result()
@@ -67,9 +67,13 @@ class TestBookmarkMapsme:
         bookmark_steps.change_bookmark_group(new_group)
         bookmark_steps.change_bookmark_description(new_description)
         bookmark_steps.change_bookmark_color()
-        steps.try_get_by_text(LocalizedButtons.SAVE.get()).click()
-
+        steps.click_by_text(LocalizedButtons.SAVE.get())
+        sleep(5)
+        steps.driver.get_screenshot_as_file("123.png")
+        sleep(5)
         steps.press_back_until_main_page()
+        sleep(5)
+        steps.driver.get_screenshot_as_file("1234.png")
         bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
 
@@ -80,31 +84,30 @@ class TestBookmarkMapsme:
         bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(new_group)
         b = bookmark_steps.try_find_bookmark_with_scroll(new_name)
-        sleep(1)
         b.click()
         steps.scroll_down(small=True)
 
         assert steps.try_get_by_text(new_description)
         assert steps.try_get_by_text(new_group, strict=False)
 
+    @pytest.mark.skip
     @pytest.mark.name("[Bookmarks] Изменение названия метки - не более 60 символов")
     def test_bookmark_edit_60_symbols_name(self, main, download_moscow_map, steps, bookmark_steps):
         bookmark_steps.delete_all_groups()
         bookmark_name = "проспект Мира, 78"
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         new_group = get_random_string(10)
         new_name = get_random_string(61)
         bookmark_steps.create_group(new_group)
         bookmark_steps.create_bookmark(bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(new_group)
         bookmark_steps.click_edit_bookmark(bookmark_name)
         bookmark_steps.change_bookmark_name(new_name)
-        steps.try_get_by_text(LocalizedButtons.SAVE.get()).click()
+        steps.click_by_text(LocalizedButtons.SAVE.get())
         steps.press_back_until_main_page()
-
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(new_group)
         assert not bookmark_steps.try_find_bookmark_with_scroll(new_name)
 
@@ -120,7 +123,7 @@ class TestBookmarkMapsme:
         bookmark = bookmark_steps.try_find_bookmark_with_scroll(bookmark_name)
         sleep(1)
         bookmark.click()
-        BottomPanel().bookmark().click()
+        bookmark_steps.click_bookmark()
         steps.press_back_until_main_page()
         bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
@@ -258,6 +261,7 @@ class TestBookmarkMapsme:
 
     @pytest.mark.name("[Bookmarks] Шаринг букмарки через почту с последующим её же импортом")
     @pytest.mark.build_check
+    @pytest.mark.skip(reason="Нужна отладка на девайсе")
     def test_share_bookmark(self, main, download_moscow_map, steps, bookmark_steps, system_steps):
         bookmark_steps.delete_all_groups()
         bookmark_steps.delele_all_bookmarks_in_group(LocalizedButtons.MY_BOOKMARKS.get())
@@ -290,6 +294,7 @@ class TestBookmarkMapsme:
 
     @pytest.mark.name("[Bookmarks] Шарринг группы через почту с последующим импортом её же")
     @pytest.mark.build_check
+    @pytest.mark.skip(reason="Нужна отладка на девайсе")
     def test_share_group(self, main, download_moscow_map, steps, bookmark_steps, system_steps):
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
@@ -314,11 +319,10 @@ class TestBookmarkMapsme:
 
     @pytest.mark.name("[Bookmarks] Открытие каталога маршрутов при клике по кнопке Download guides")
     def test_bookmark_guides(self, main, download_moscow_map, steps, bookmark_steps):
-        BottomPanel().bookmarks().click()
-        steps.try_get_by_text(LocalizedButtons.GUIDES.get()).click()
+        bookmark_steps.click_bookmarks()
+        steps.click_by_text(LocalizedButtons.GUIDES.get())
         bookmark_steps.click_download_guides()
-        guides_page = GuidesCatalog()
-        assert guides_page.navigation_bar_title()
+        bookmark_steps.assert_guides_page_navbar()
 
     @pytest.mark.name("[Bookmarks] Открытие окна Sharing options через wifi и проверка окна авторизации")
     def test_sharing_options_wifi(self, main, download_moscow_map, steps, bookmark_steps, system_steps):
@@ -326,7 +330,7 @@ class TestBookmarkMapsme:
         bookmark_name = "проспект Мира, 78"
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), bookmark_name)
         bookmark_steps.create_bookmark(bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
         steps.try_get(Locator.BOOKMARKS_MORE.get()).click()
         steps.try_get_by_text(LocalizedButtons.SHARING_OPTIONS.get()).click()  # Sharing options
@@ -335,8 +339,8 @@ class TestBookmarkMapsme:
         assert steps.try_get(Locator.EDIT_ON_WEB.get())
 
         steps.try_get(Locator.GET_DIRECT_LINK.get()).click()
-        assert steps.try_get(Locator.TERM_OF_USE_CHECKBOX.get())
-        assert steps.try_get(Locator.POLICY_CHECKBOX.get())
+        assert steps.try_get_by_text(Locator.TERM_OF_USE_CHECKBOX.get())
+        assert steps.try_get_by_text(Locator.POLICY_CHECKBOX.get())
 
         steps.driver.back()
 
@@ -346,7 +350,7 @@ class TestBookmarkMapsme:
         bookmark_name = "проспект Мира, 78"
         bookmark_steps.delete_bookmark(LocalizedButtons.MY_BOOKMARKS.get(), bookmark_name)
         bookmark_steps.create_bookmark(bookmark_name)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_more_group(LocalizedButtons.MY_BOOKMARKS.get())
         steps.try_get_by_text(LocalizedButtons.SHARING_OPTIONS.get()).click()  # Sharing options
         assert steps.try_get(Locator.GET_DIRECT_LINK.get())
@@ -357,12 +361,12 @@ class TestBookmarkMapsme:
     def test_bookmark_search(self, main, download_moscow_map, steps, bookmark_steps, system_steps):
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmarks = ["метро Динамо", "Якитория", "Домодедово"]
         for b in bookmarks:
             bookmark_steps.create_bookmark(b)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(group_name)
 
         assert steps.try_get(Locator.BOOKMARKS_SEARCH.get())
@@ -378,7 +382,7 @@ class TestBookmarkMapsme:
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.VORONEZH)
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmarks = ["Домодедово", LocalizedCategories.FASTFOOD.get(),
                      LocalizedCategories.RESTAURANT.get(),
@@ -386,7 +390,7 @@ class TestBookmarkMapsme:
                      LocalizedCategories.HOTEL.get()]
         for b in bookmarks:
             bookmark_steps.create_bookmark(b)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(group_name)
         bookmark_steps.click_sort()
         assert steps.try_get_by_text(LocalizedSettings.BY_DEFAULT.get(), strict=False)
@@ -427,13 +431,13 @@ class TestBookmarkMapsme:
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.VORONEZH)
         bookmark_steps.delete_all_groups()
         group_name = get_random_string(10)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.create_group(group_name)
         bookmarks = ["Домодедово", LocalizedCategories.CAFE.get(),
                      "метро Динамо", LocalizedCategories.PARK.get()]
         for b in bookmarks:
             bookmark_steps.create_bookmark(b)
-        BottomPanel().bookmarks().click()
+        bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(group_name)
         bookmark_steps.click_sort()
         assert steps.try_get_by_text(LocalizedSettings.BY_DEFAULT.get(), strict=False)
@@ -442,7 +446,8 @@ class TestBookmarkMapsme:
         assert not steps.try_get_by_text(LocalizedSettings.BY_TYPE.get(), strict=False)
 
     @pytest.fixture
-    def open_bookmark(self, steps):
-        BottomPanel().bookmarks().click()
+    def open_bookmark(self, steps, bookmark_steps):
+        #steps.press_back_until_main_page()
+        bookmark_steps.click_bookmarks()
         steps.try_get_by_text(LocalizedButtons.BOOKMARKS.get()).click()
         steps.press_back_until_main_page()

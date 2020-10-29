@@ -272,9 +272,9 @@ def emulate_location_moscow(driver):
         pass
     else:
         if not WebDriverManager.get_instance().device.emulator:
-            system("idevicelocation -u {} 55.758769 37.621199".format(WebDriverManager.get_instance().device.udid))
+            system("idevicelocation -u {} 55.7968802 37.537294".format(WebDriverManager.get_instance().device.udid))
         else:
-            WebDriverManager.get_instance().driver.set_location(55.758769, 37.621199, 0)
+            WebDriverManager.get_instance().driver.set_location(55.7968802, 37.537294, 0)
         # driver.set_location(55.758769, 37.621199, 0)
 
 

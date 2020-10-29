@@ -18,6 +18,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 @pytest.mark.regress1
 @pytest.mark.routing
+@pytest.mark.night
 class TestRoutingMapsme:
 
     @pytest.fixture
@@ -897,6 +898,7 @@ class TestRoutingMapsme:
                             return i / proportions["width"], j / proportions["height"]  # 1080 x 2340
                         return i / width, j / height  #1080 x 2340
 
+    @pytest.mark.skip
     @pytest.mark.name("[Routing][Subway] Проверка отображения слоя метро на карте")
     def test_metro_layer(self, main, steps):
         steps.download_map(LocalizedMapsNames.RUSSIA, None, LocalizedMapsNames.CHELYABINSK)
@@ -913,11 +915,6 @@ class TestRoutingMapsme:
         steps.try_get(Locator.MAP_LAYERS.get()).click()
         subway = steps.try_get_by_text(LocalizedButtons.SUBWAY.get())
         TouchAction(steps.driver).tap(x=subway.location["x"]+10, y=subway.location["y"]-50).perform()
-        #subway = steps.try_get_by_xpath(
-        #    "//*[@class='android.widget.LinearLayout' and ./*[@text='{}']]/*[@class='android.widget.ImageButton']".format(
-        #        LocalizedButtons.SUBWAY.get())) or \
-        #         steps.try_get_by_text(LocalizedButtons.SUBWAY.get()).click()
-        #subway.click()
         TouchAction(steps.driver).tap(x=100, y=100).perform()
         sleep(10)
         # click to empty space to close

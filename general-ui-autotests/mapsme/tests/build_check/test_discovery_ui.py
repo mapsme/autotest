@@ -14,6 +14,8 @@ from mapsmefr.steps.routing_steps import RoutingSteps
 
 @pytest.mark.build_check
 @pytest.mark.discovery
+@pytest.mark.regress1
+@pytest.mark.night
 class TestDiscoveryMapsme:
 
     @pytest.fixture

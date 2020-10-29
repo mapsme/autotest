@@ -18,6 +18,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 @pytest.mark.build_check
 @pytest.mark.booking_ui
+@pytest.mark.regress1
 class TestBookingOnlyUiMapsme:
 
     @pytest.fixture

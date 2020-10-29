@@ -1,5 +1,6 @@
 import base64
 import logging
+import random
 import time
 from datetime import datetime
 from functools import wraps
@@ -35,7 +36,7 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
                     with open("testresult.txt", "r") as f:
                         test_r = f.read()
                     if test_r and test_r != "0":
-                        additional = "".join([x for x in args if isinstance(x, str)])
+                        additional = " ".join([x for x in args if isinstance(x, str)])
 
                         text = stepname
                         if additional != "":
@@ -52,7 +53,6 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
                     pass
 
             result = func(*args, **kwargs)
-            sleep(2)
             filename = 'after_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
                                                 datetime.now().strftime("%H_%M_%S"))
             screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
@@ -206,6 +206,10 @@ class CommonSteps(object):
         else:
             return None, None
 
+    @screenshotwrap("Кликнуть")
+    def click_by_text(self, text):
+        self.try_get_by_text(text).click()
+
 
 class BaseSteps(CommonSteps):
 
@@ -250,12 +254,14 @@ class AndroidSteps(BaseSteps):
         assert len(self.driver.find_elements_by_id(Locator.CUISINE.get())) == 1
         assert self.try_get(Locator.CUISINE.get()).text == cuisine
 
+    @screenshotwrap("Проверить наличие промо каталога на PP", two_screenshots=False)
     def assert_catalog_promo(self, no=False):
         if no:
             assert not self.try_get(Locator.CATALOG_PROMO_PP.get())
         else:
             assert self.try_get(Locator.CATALOG_PROMO_PP.get())
 
+    @screenshotwrap("Проверить карточки промо каталога на наличие картинки, описания и CTA кнопки", two_screenshots=False)
     def assert_promo_card(self, no=False):
         if no:
             assert not self.try_get(Locator.PROMO_POI_CARD.get())
@@ -343,11 +349,15 @@ class AndroidSteps(BaseSteps):
         city.click()
         self.try_get_by_text(text=LocalizedButtons.SHOW_ON_MAP.get()).click()
 
-    @check_not_crash
-    def download_map(self, country_name, state_name, *loc_names):
+    @screenshotwrap("Открыть загрузчик карт")
+    def go_to_maps(self):
         self._wait_in_progress()
         self.driver.find_element_by_id(Locator.MENU_BUTTON.get()).click()
         self.driver.find_element_by_id(Locator.DOWNLOAD_MAPS.get()).click()
+
+    @check_not_crash
+    def download_map(self, country_name, state_name, *loc_names):
+        self.go_to_maps()
         country = None
         state = None
         for loc_name in loc_names:
@@ -426,11 +436,13 @@ class AndroidSteps(BaseSteps):
             assert self.try_get(Locator.POI_DESCRIPTION.get())
             assert part_of_text in self.try_get(Locator.POI_DESCRIPTION.get()).text
 
+    @screenshotwrap("Проверить порядок кнопок", two_screenshots=False)
     def assert_buttons_order(self, *button_names):
         for i, bn in enumerate(button_names):
             b, j = self.try_get_by_text(bn.upper(), locator="title", strict=True)
             assert i == j
 
+    @screenshotwrap("Проверить порядок кнопок в разделе MORE", two_screenshots=False)
     def assert_buttons_more_order(self, *button_names):
         for i, bn in enumerate(button_names):
             b, j = self.try_get_by_text(bn, locator="bs_list_title", strict=True)
@@ -619,6 +631,8 @@ class IosSteps(BaseSteps):
         else:
             assert self.try_get_by_text(description, strict=False)
 
+    @screenshotwrap("Проверить карточки промо каталога на наличие картинки, описания и CTA кнопки",
+                    two_screenshots=False)
     def assert_promo_card(self, no=False):
         if no:
             assert not self.try_get(LocalizedButtons.THIS_PLACE_IN_GUIDES.get())
@@ -627,6 +641,7 @@ class IosSteps(BaseSteps):
             assert self.try_get(LocalizedButtons.THIS_PLACE_IN_GUIDES.get())
             assert self.try_get(Locator.PROMO_POI_CTA_BUTTON.get())
 
+    @screenshotwrap("Проверить порядок кнопок", two_screenshots=False)
     def assert_buttons_order(self, *button_names):
         buttons = self.driver.find_elements_by_xpath(
             "//*[@type='XCUIElementTypeOther' and .//*[@name='{}']]/*[@type='XCUIElementTypeOther']/*[@type='XCUIElementTypeStaticText']".format(
@@ -636,11 +651,13 @@ class IosSteps(BaseSteps):
                 bn = LocalizedButtons.SAVE.get()
             assert buttons[i].text == bn
 
+    @screenshotwrap("Проверить порядок кнопок в разделе MORE", two_screenshots=False)
     def assert_buttons_more_order(self, *button_names):
         buttons = self.driver.find_elements_by_xpath("//*[@type='XCUIElementTypeButton']")
         for i, bn in enumerate(button_names):
             assert buttons[i].text == bn
 
+    @screenshotwrap("Проверить наличие промо каталога на PP", two_screenshots=False)
     def assert_catalog_promo(self, no=False):
         if no:
             assert not self.try_get_by_xpath("//*[@type='XCUIElementTypeCollectionView']")
@@ -761,11 +778,16 @@ class IosSteps(BaseSteps):
         city, _ = self.try_find_map_with_scroll(city_name)
         assert city
 
-    @check_not_crash
-    def download_map(self, country_name, state_name, *loc_names):
+    @screenshotwrap("Открыть загрузчик карт")
+    def go_to_maps(self):
         self.driver.find_element_by_id(Locator.MENU_BUTTON.get()).click()
         sleep(1)
         self.driver.find_element_by_id(LocalizedButtons.DOWNLOAD_MAPS.get()).click()
+
+
+    @check_not_crash
+    def download_map(self, country_name, state_name, *loc_names):
+        self.go_to_maps()
         country = None
         state = None
         for loc_name in loc_names:
@@ -850,10 +872,10 @@ class IosSteps(BaseSteps):
     @check_not_crash
     @screenshotwrap(stepname="Проверка значения на PP", two_screenshots=False)
     def assert_pp(self, text):
-        assert text in self.try_get(Locator.TITLE.get()).text or self.driver.find_element_by_id(text)
+        assert self.driver.find_element_by_id(text) or text in self.try_get(Locator.TITLE.get()).text
 
     def assert_category_on_pp(self, text):
-        assert text in self.try_get("searchType").text or self.try_get_by_xpath("//*[contains(@name, '{}')]".format(text))
+        assert self.try_get_by_xpath("//*[contains(@name, '{}')]".format(text)) or text in self.try_get("searchType").text
 
     @check_not_crash
     def press_back_until_main_page(self):
@@ -864,7 +886,7 @@ class IosSteps(BaseSteps):
         self.driver.implicitly_wait(3)
         self._press_back_all(Locator.SEND.get(), LocalizedButtons.CANCEL.get(), LocalizedButtons.CANCELLATION.get(),
                              Locator.CANCEL_BUTTON.get(), "goBackButton", LocalizedButtons.BACK.get(), "ic cancel",
-                             "notNowButton", "ic nav bar back", "ic clear 24")
+                             "notNowButton", "ic nav bar back") #, "ic clear 24")
 
         anchor_timeout = time.time() + 30  # 30s from now
 
@@ -963,13 +985,17 @@ class IosSteps(BaseSteps):
         city, num = self.try_find_map_with_scroll(city_name)
 
         if city:
-            sleep(1)
-            TouchAction(self.driver).long_press(self.driver.find_elements_by_xpath("//*[@name='{}' or @name='{}']"
-                                                                                   .format(Locator.FOLDER_ICON.get(),
-                                                                                           Locator.DOWNLOADED_ICON.get()))[
-                                                    num], duration=2000) \
+            sleep(3)
+            check = self.try_get_by_xpath("//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]/*[@name='{}' or @name='{}']".format(city_name.get(), Locator.FOLDER_ICON.get(),
+                                                                                           Locator.DOWNLOADED_ICON.get()))
+
+            TouchAction(self.driver).long_press(check, duration=2000) \
                 .wait(500).release().perform()
+            sleep(3)
             self.try_get(Locator.DELETE_MAP.get()).click()
+            sleep(3)
+            if self.try_get(Locator.DELETE_MAP.get()):
+                self.try_get_by_xpath("//*[@type='XCUIElementTypeOther' and ./*[@name='{}']]".format(Locator.DELETE_MAP.get())).click()
 
         self.press_back_until_main_page()
 
