@@ -42,7 +42,7 @@ class TestBookingOnlyUiMapsme:
 
     @pytest.mark.releaseonly
     @pytest.mark.name("[Hotels] Отображение компонентов Rich PP (галерея, описание, удобства, отзывы) для Аэрополиса")
-    def test_hotel_rich_pp_booking(self, main, download_moscow_map, b_steps):
+    def test_hotel_rich_pp_hotels(self, main, download_moscow_map, b_steps):
         b_steps.search_booking_hotel(LocalizedButtons.AEROPOLIS_NAME.get())
         b_steps.scroll_down(from_el=b_steps.try_get(Locator.PP_ANCHOR.get()))
         b_steps.assert_hotel_description()
@@ -90,8 +90,8 @@ class TestBookingOnlyUiMapsme:
         b_steps.try_get(Locator.HOTEL_FILTER.get()).click()
         s_filter = SearchFilter()
         assert s_filter.reset_button()
-        assert s_filter.check_in()
-        assert s_filter.check_out()
+        #assert s_filter.check_in()
+        #assert s_filter.check_out()
         assert s_filter.price_high()
         assert s_filter.price_medium()
         assert s_filter.price_low()
@@ -100,7 +100,7 @@ class TestBookingOnlyUiMapsme:
         assert s_filter.rating_very_good()
         assert s_filter.rating_excellent()
         assert s_filter.type(BookingButtons.HOSTEL.get()).location["y"] > s_filter.price_high().location["y"] > \
-               s_filter.rating_any().location["y"] > s_filter.check_in().location["y"]
+               s_filter.rating_any().location["y"] #> s_filter.check_in().location["y"]
 
         self.assert_blue_rating(s_filter)
         self.assert_blue_price(s_filter)
@@ -295,7 +295,3 @@ class TestBookingOnlyUiMapsme:
         b_steps.switch_to_native()
         b_steps.close_first_time_frame()
         b_steps.press_back_until_main_page()
-
-    def test_booking_menu_button(self, main, steps):
-        steps.try_get(Locator.MENU_BUTTON.get()).click()
-        assert steps.try_get_by_text(BookingButtons.BOOKING_MENU_BTN.get())

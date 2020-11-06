@@ -23,6 +23,7 @@ class IOSOnlySystemLocators(Localized):
 
 
 class LocalizedButtons(Localized):
+    DESCRIPTION = {"ru": "Описание", "en": "Description"}
     ACCEPT = {"ru": "Принять", "en": "Accept"}
     START = {"ru": 'Начать', "en": "Start"}
     TO = {"ru": 'Сюда', "en": "Route to"}

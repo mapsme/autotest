@@ -238,6 +238,7 @@ def test_log(request):
     if request.method == 'GET':
         testres_id = request.GET["test_result_id"]
         logs = TestResultLog.objects.filter(test_result__id=testres_id)
+        #return JsonResponse(data={})
     if request.method == 'POST':
         params = request.POST.dict()
         testres = TestResults.objects.get(pk=params["test_result"])
@@ -246,3 +247,4 @@ def test_log(request):
         data = ContentFile(base64.b64decode(image_data))
         file_name = "myphoto.png"
         testlog.file.save(file_name, data, save=True)  # image is User's model fi
+    return JsonResponse(data={})
