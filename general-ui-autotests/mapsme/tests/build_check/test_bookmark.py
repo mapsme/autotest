@@ -68,12 +68,7 @@ class TestBookmarkMapsme:
         bookmark_steps.change_bookmark_description(new_description)
         bookmark_steps.change_bookmark_color()
         steps.click_by_text(LocalizedButtons.SAVE.get())
-        sleep(5)
-        steps.driver.get_screenshot_as_file("123.png")
-        sleep(5)
         steps.press_back_until_main_page()
-        sleep(5)
-        steps.driver.get_screenshot_as_file("1234.png")
         bookmark_steps.click_bookmarks()
         bookmark_steps.click_bookmark_group(LocalizedButtons.MY_BOOKMARKS.get())
 
@@ -170,11 +165,7 @@ class TestBookmarkMapsme:
         button.click()
         assert steps.try_get_by_text(group_name) is None
         bookmark_steps.click_bookmark_group(new_name)
-        sleep(2)
-        more = steps.try_get(Locator.MORE_BUTTON.get())
-        if more:
-            more.click()
-        assert steps.try_get_by_text(new_description)
+        bookmark_steps.assert_group_description(new_description)
 
     @pytest.mark.name("[Bookmarks] Удаление группы на экране букмарок (кроме последней)")
     @pytest.mark.build_check

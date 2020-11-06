@@ -468,6 +468,11 @@ class IosBookmarkSteps(BookmarkSteps, IosSteps):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").clear()
         self.try_get_by_xpath("//*[@type='XCUIElementTypeTextView']").send_keys(text)
 
+    @screenshotwrap("Проверить описание группы меток")
+    def assert_group_description(self, description):
+        self.try_get_by_text(LocalizedButtons.DESCRIPTION.get()).click()
+        assert self.try_get_by_text(description)
+
     def get_group_size(self, group_name):
         return self.driver.find_element_by_xpath(
             "//*[@type='XCUIElementTypeCell' and ./*[@type='XCUIElementTypeStaticText' and @name='{}']]/*[@type='XCUIElementTypeStaticText'][2]"
