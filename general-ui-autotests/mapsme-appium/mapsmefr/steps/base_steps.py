@@ -32,6 +32,7 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
                                                      datetime.now().strftime("%H_%M_%S"))
                 screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
                 test_r = None
+                logging.info("going into screenshsotwrap: {}".format(stepname))
                 try:
                     with open("testresult.txt", "r") as f:
                         test_r = f.read()
@@ -49,10 +50,12 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
                                   "is_fail": False,
                                   "before": True}
                         resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+                        logging.info("sent to server: {}".format(stepname))
                 except FileNotFoundError:
                     pass
 
             result = func(*args, **kwargs)
+            logging.info("func done: {}".format(stepname))
             filename = 'after_{}_{}.png'.format(getenv('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0],
                                                 datetime.now().strftime("%H_%M_%S"))
             screencap = WebDriverManager.get_instance().driver.get_screenshot_as_base64()
@@ -73,6 +76,7 @@ def screenshotwrap(stepname, two_screenshots=True, log_result=False):
                               "is_fail": False,
                               "before": False}
                     resp = requests.post("{}/testlog".format(get_settings("ReportServer", "host")), data=params)
+                    logging.info("sent to server complete: {}".format(stepname))
             except FileNotFoundError:
                 pass
             return result
