@@ -1,6 +1,6 @@
 pytest <= 4.1.1
 attrs <= 19.1.0
-pytest-html
+pytest-html <= 2.1.1
 requests
 Appium-Python-Client<=0.46
 selenium==3.141.0
