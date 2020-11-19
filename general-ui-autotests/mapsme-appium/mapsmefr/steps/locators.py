@@ -196,6 +196,7 @@ class LocalizedButtons(Localized):
     RESET = {"en": "Reset", "ru": "Сбросить"}
     SUBWAY = {"ru": "Метро", "en": "Subway"}
     SUBWAY_UNAVAILABLE = {"ru": "Карта метро недоступна", "en": "Subway map is unavailable"}
+    ARAB_CUIZINE = {"ru": "араб", "en": "arab"}
 
 
 class BookingButtons(Localized):

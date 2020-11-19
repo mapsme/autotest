@@ -617,7 +617,7 @@ class IosSteps(BaseSteps):
     @screenshotwrap("Редактировать тип кухни ресторана")
     def edit_cuisine(self, cuisine, type):
         self.try_get_by_xpath("//*[@type='XCUIElementTypeCell' and ./*[@name='{}']]".format(type)).click()
-        self.try_get(LocalizedButtons.SEARCH.get()).send_keys(cuisine)
+        self.try_get(LocalizedButtons.SEARCH_HOTEL_FILTER.get()).send_keys(cuisine)
 
     @screenshotwrap("Проверить наличие кухни в списке", two_screenshots=False)
     def assert_cuisine_in_list(self, cuisine):

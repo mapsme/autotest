@@ -23,7 +23,7 @@ class TestEditMapsme:
         steps.driver.implicitly_wait(3)
         edit_button = steps.scroll_down_to_element(locator=Locator.EDIT_PLACE_BUTTON, scroll_time=15)
         edit_button.click()
-        steps.edit_cuisine("arab", type=LocalizedCategories.BURGER.get())
+        steps.edit_cuisine(LocalizedButtons.ARAB_CUIZINE.get(), type=LocalizedCategories.BURGER.get())
         steps.assert_cuisine_in_list(LocalizedCategories.ARAB_CUISINE.get())
 
     @pytest.mark.name("Редактирование этажности здания с отправкой правок в OSM")
