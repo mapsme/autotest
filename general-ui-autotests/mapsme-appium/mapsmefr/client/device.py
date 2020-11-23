@@ -163,8 +163,8 @@ class IOSDevice(Device):
             caps["bundleId"] = "com.my.maps-beta-enterprise" if bn == "beta" else "com.mapswithme.full"
             set_settings("Android", "package", caps["bundleId"])
         else:
-            #if "Release" in pytest.config.getoption("--apk-name"):
-            #    set_settings("Android", "package", "com.mapswithme.full")
+            if "Release" in pytest.config.getoption("--apk-name"):
+                set_settings("Android", "package", "com.mapswithme.full")
             caps["app"] = app_path
 
         return caps
