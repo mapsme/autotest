@@ -1,4 +1,4 @@
 psycopg2-binary
-Django==2.2.13
+Django==2.2.20
 Pillow==7.0
 requests
